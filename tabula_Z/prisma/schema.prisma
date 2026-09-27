@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// A SQLite database file registered and managed by Tabula.
+model ManagedDatabase {
+  id          String   @id @default(cuid())
+  name        String
+  /// Absolute path to the .db / .sqlite file on disk.
+  filePath    String
+  /// Optional color tag (hex) for visual grouping.
+  color       String   @default("#f59e0b")
+  /// Size of the file in bytes, refreshed on open.
+  fileSize    Int      @default(0)
+  createdAt   DateTime @default(now())
+  lastOpenedAt DateTime?
+
+  tableLayouts TableLayout[]
+  queryHistory  QueryHistory[]
+
+  @@unique([filePath])
+}
+
+/// Persisted position of a table card on the ER diagram canvas.
+model TableLayout {
+  id         String   @id @default(cuid())
+  databaseId String
+  tableName  String
+  x          Float    @default(0)
+  y          Float    @default(0)
+  /// Optional note attached to the table card.
+  note       String?
+  updatedAt  DateTime @updatedAt
+
+  database ManagedDatabase @relation(fields: [databaseId], references: [id], onDelete: Cascade)
+
+  @@unique([databaseId, tableName])
+}
+
+/// A record of a SQL statement executed against a managed database.
+model QueryHistory {
+  id         String   @id @default(cuid())
+  databaseId String
+  query      String
+  success    Boolean  @default(true)
+  rowCount   Int      @default(0)
+  durationMs Int      @default(0)
+  error      String?
+  executedAt DateTime @default(now())
+
+  database ManagedDatabase @relation(fields: [databaseId], references: [id], onDelete: Cascade)
+
+  @@index([databaseId, executedAt])
+}

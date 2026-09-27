@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Tabula
+GenericName=SQLite Database Designer
+Comment=Design, inspect, query, and migrate SQLite databases
+Exec=@EXEC@ %f
+Icon=tabula
+Terminal=false
+Categories=Development;Database;
+MimeType=application/vnd.sqlite3;application/x-sqlite3;
+StartupNotify=true
+Keywords=SQLite;database;schema;ERD;SQL;

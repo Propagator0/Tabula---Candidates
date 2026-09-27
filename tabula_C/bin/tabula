@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# tabula [file.db]  —  opens Tabula in its own window.
+# The server stops by itself a few seconds after the window closes.
+set -euo pipefail
+here="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+if ! command -v bun >/dev/null 2>&1; then
+  echo "tabula needs Bun: https://bun.sh (or the AUR package bun-bin)" >&2
+  exit 1
+fi
+exec bun "$here/server/main.ts" "$@" --open --idle-exit

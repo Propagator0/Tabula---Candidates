@@ -1,0 +1,16 @@
+{
+  "name": "tabula-sqlite",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A local-first visual SQLite schema and data editor for Linux",
+  "type": "module",
+  "scripts": {
+    "start": "bun server/main.ts --open --idle-exit",
+    "dev": "bun --watch server/main.ts",
+    "demo": "bun scripts/demo.ts demo/tasks.db",
+    "test": "bun test"
+  },
+  "engines": {
+    "bun": ">=1.1.0"
+  }
+}

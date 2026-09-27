@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+html,body{margin:0;height:100%;background:#0e0e13;color:#e7e7ee;font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;color-scheme:dark}
+*{box-sizing:border-box}
+a{color:#b9a8ff}a:hover{color:#d6ccff}
+input,select,textarea,button{font-family:inherit}
+button{white-space:nowrap;flex-shrink:0}
+button:disabled{cursor:default}
+select option{background:#16161c;color:#e7e7ee}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#2a2a34;border-radius:6px;border:2px solid transparent;background-clip:padding-box}::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}
+::selection{background:rgba(157,133,255,.35)}
+</style>
+</helmet>
+<div onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}" style="height:100vh; display:flex; flex-direction:column; background:#0e0e13; color:#e7e7ee; font-size:13px; position:relative">
+  <input type="file" ref="{{ fileRef }}" onChange="{{ onFilePicked }}" style="display:none">
+
+  <sc-if value="{{ menuOpen }}"><div onMouseDown="{{ closeMenu }}" style="position:fixed; inset:0; z-index:55"></div></sc-if>
+
+  <div style="height:34px; flex:none; position:relative; z-index:60; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:0 8px 0 12px; background:#0a0a0e; border-bottom:1px solid #1f1f27">
+    <div style="display:flex; align-items:center; gap:16px; min-width:0">
+      <div style="display:flex; align-items:center; gap:8px">
+        <div style="width:15px; height:15px; border-radius:4px; background:#9d85ff; display:grid; grid-template-columns:1fr 1fr; gap:2px; padding:3px">
+          <span style="background:#0a0a0e; border-radius:1px"></span><span style="background:#0a0a0e; border-radius:1px"></span><span style="background:#0a0a0e; border-radius:1px"></span><span style="background:#0a0a0e; border-radius:1px"></span>
+        </div>
+        <span style="font-weight:600; font-size:12.5px">Tabula</span>
+      </div>
+      <div style="display:flex; gap:2px; font-size:12.5px">
+        <sc-for list="{{ menus }}" as="mn" hint-placeholder-count="5">
+          <div style="position:relative">
+            <span onMouseDown="{{ mn.onDown }}" onMouseEnter="{{ mn.onEnter }}" style="display:block; padding:3px 7px; border-radius:4px; cursor:default; user-select:none; background:{{ mn.bg }}; color:{{ mn.color }}" style-hover="background:#1a1a22; color:#e7e7ee">{{ mn.label }}</span>
+            <sc-if value="{{ mn.open }}">
+              <div style="position:absolute; left:0; top:calc(100% + 5px); min-width:248px; padding:5px; background:#17171e; border:1px solid #2a2a34; border-radius:8px; box-shadow:0 16px 40px rgba(0,0,0,.55)">
+                <sc-for list="{{ mn.items }}" as="mi">
+                  <sc-if value="{{ mi.sep }}"><div style="height:1px; background:#24242d; margin:5px 4px"></div></sc-if>
+                  <sc-if value="{{ mi.item }}">
+                    <div onClick="{{ mi.onClick }}" style="display:flex; align-items:center; gap:18px; height:28px; padding:0 10px; border-radius:5px; font-size:12.5px; color:{{ mi.color }}; cursor:default; white-space:nowrap" style-hover="background:#24242d">
+                      <span style="flex:1">{{ mi.label }}</span>
+                      <span style="font-family:'Geist Mono',monospace; font-size:10.5px; color:#6e6e7e">{{ mi.hint }}</span>
+                    </div>
+                  </sc-if>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="font-family:'Geist Mono',monospace; font-size:11.5px; color:#8e8e9e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ windowTitle }}</div>
+    <div style="display:flex; justify-content:flex-end; gap:8px">
+      <div style="width:18px; height:18px; border-radius:50%; display:grid; place-items:center; color:#8e8e9e" style-hover="background:#24242d; color:#fff"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 4l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg></div>
+      <div style="width:18px; height:18px; border-radius:50%; display:grid; place-items:center; color:#8e8e9e" style-hover="background:#24242d; color:#fff"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 6l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg></div>
+      <div style="width:18px; height:18px; border-radius:50%; display:grid; place-items:center; color:#8e8e9e" style-hover="background:#ff6b7a; color:#0a0a0e"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2.5 2.5l5 5M7.5 2.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg></div>
+    </div>
+  </div>
+
+  <div style="height:44px; flex:none; display:flex; align-items:center; gap:2px; padding:0 10px; overflow:hidden; background:#111117; border-bottom:1px solid #1f1f27">
+    <button onClick="{{ openFile }}" title="Open database (Ctrl+O)" style="height:28px; padding:0 10px; display:flex; align-items:center; gap:7px; border-radius:6px; border:none; background:transparent; color:#c8c8d4; font-size:12.5px; font-weight:500; cursor:pointer" style-hover="background:#1d1d25; color:#fff">
+      <svg width="14" height="14" viewBox="0 0 14 14"><path d="M1.5 3.5h4l1.2 1.5h5.8v6.5h-11z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"></path></svg>Open
+    </button>
+    <button onClick="{{ save }}" title="Save (Ctrl+S)" style="height:28px; padding:0 10px; display:flex; align-items:center; gap:7px; border-radius:6px; border:none; background:transparent; color:#c8c8d4; font-size:12.5px; font-weight:500; cursor:pointer" style-hover="background:#1d1d25; color:#fff">
+      <svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 2h8l2 2v8H2z M4.5 2v3h4V2 M4.5 12V8.5h5V12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"></path></svg>Save
+      <sc-if value="{{ diskDirty }}"><span style="width:6px; height:6px; border-radius:50%; background:#e8b64c"></span></sc-if>
+    </button>
+    <div style="width:1px; height:18px; background:#24242d; margin:0 6px"></div>
+    <button onClick="{{ addTable }}" title="New table (T)" style="height:28px; padding:0 10px; display:flex; align-items:center; gap:7px; border-radius:6px; border:none; background:transparent; color:#c8c8d4; font-size:12.5px; font-weight:500; cursor:pointer" style-hover="background:#1d1d25; color:#fff">
+      <svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 2.5v9M2.5 7h9" fill="none" stroke="currentColor" stroke-width="1.4"></path></svg>Table<span style="font-family:'Geist Mono',monospace; font-size:10.5px; color:#6e6e7e">T</span>
+    </button>
+    <button onClick="{{ autoLayout }}" title="Auto-layout by foreign-key depth (L)" style="height:28px; padding:0 10px; display:flex; align-items:center; gap:7px; border-radius:6px; border:none; background:transparent; color:#c8c8d4; font-size:12.5px; font-weight:500; cursor:pointer" style-hover="background:#1d1d25; color:#fff">
+      <svg width="14" height="14" viewBox="0 0 14 14"><rect x="1.5" y="2" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"></rect><rect x="8.5" y="2" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"></rect><rect x="8.5" y="8" width="4" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"></rect><path d="M5.5 4h3M7 4v6h1.5" fill="none" stroke="currentColor" stroke-width="1.2"></path></svg>Auto-layout<span style="font-family:'Geist Mono',monospace; font-size:10.5px; color:#6e6e7e">L</span>
+    </button>
+    <div style="width:1px; height:18px; background:#24242d; margin:0 6px"></div>
+    <button onClick="{{ undo }}" title="Undo (Ctrl+Z)" style="height:28px; width:30px; display:grid; place-items:center; border-radius:6px; border:none; background:transparent; color:{{ undoColor }}; cursor:pointer" style-hover="background:#1d1d25">
+      <svg width="14" height="14" viewBox="0 0 14 14"><path d="M4.5 3L2 5.5 4.5 8M2 5.5h6.5a3.5 3.5 0 010 7H6" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg>
+    </button>
+    <button onClick="{{ redo }}" title="Redo (Ctrl+Shift+Z)" style="height:28px; width:30px; display:grid; place-items:center; border-radius:6px; border:none; background:transparent; color:{{ redoColor }}; cursor:pointer" style-hover="background:#1d1d25">
+      <svg width="14" height="14" viewBox="0 0 14 14"><path d="M9.5 3L12 5.5 9.5 8M12 5.5H5.5a3.5 3.5 0 000 7H8" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg>
+    </button>
+    <div style="width:1px; height:18px; background:#24242d; margin:0 6px"></div>
+    <button onClick="{{ fitView }}" title="Fit diagram (F)" style="height:28px; padding:0 10px; display:flex; align-items:center; gap:7px; border-radius:6px; border:none; background:transparent; color:#c8c8d4; font-size:12.5px; font-weight:500; cursor:pointer" style-hover="background:#1d1d25; color:#fff">
+      <svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 5V2h3M9 2h3v3M12 9v3H9M5 12H2V9" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg>Fit<span style="font-family:'Geist Mono',monospace; font-size:10.5px; color:#6e6e7e">F</span>
+    </button>
+    <div style="flex:1"></div>
+    <span style="font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; color:{{ pendingColor }}; margin-right:10px; font-family:'Geist Mono',monospace">{{ pendingLabel }}</span>
+    <button onClick="{{ discard }}" style="height:28px; padding:0 12px; border-radius:6px; border:1px solid #2a2a34; background:transparent; color:{{ discardColor }}; font-size:12.5px; font-weight:500; cursor:pointer" style-hover="border-color:#3a3a48">Discard</button>
+    <button onClick="{{ apply }}" title="Run the migration against the database" style="height:28px; padding:0 14px; margin-left:6px; border-radius:6px; border:none; background:{{ applyBg }}; color:{{ applyColor }}; font-size:12.5px; font-weight:600; cursor:pointer">{{ applyLabel }}</button>
+  </div>
+
+  <div style="flex:1; min-height:0; display:flex">
+
+    <aside style="width:clamp(196px, 19vw, 236px); flex:none; background:#111117; border-right:1px solid #1f1f27; display:flex; flex-direction:column; min-height:0">
+      <div style="padding:12px 12px 10px; border-bottom:1px solid #1c1c24">
+        <div style="display:flex; align-items:center; gap:8px; min-width:0">
+          <span style="width:7px; height:7px; border-radius:50%; background:{{ engineDot }}; flex:none"></span>
+          <span style="font-weight:600; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ fileName }}</span>
+          <span style="margin-left:auto; font-family:'Geist Mono',monospace; font-size:10.5px; color:#6e6e7e; white-space:nowrap">{{ sizeLabel }}</span>
+        </div>
+        <div style="font-size:11px; color:#6e6e7e; margin-top:4px; padding-left:15px">{{ locationLabel }}</div>
+        <input value="{{ search }}" onChange="{{ onSearch }}" placeholder="Filter objects…" spellCheck="false" style="margin-top:12px; width:100%; height:28px; padding:0 10px; border-radius:6px; border:1px solid #24242d; background:#0e0e13; color:#e7e7ee; font-size:12.5px; outline:none" style-focus="border-color:#9d85ff">
+      </div>
+      <div style="flex:1; overflow:auto; padding:8px 6px 16px">
+        <sc-for list="{{ sideSections }}" as="sec" hint-placeholder-count="4">
+          <div style="margin-bottom:8px">
+            <div onClick="{{ sec.onToggle }}" style="display:flex; align-items:center; gap:6px; height:26px; padding:0 8px; font-size:10.5px; font-weight:600; letter-spacing:.08em; color:#6e6e7e; cursor:pointer; user-select:none" style-hover="color:#a0a0b0">
+              <span style="width:10px; font-size:9px">{{ sec.chev }}</span>
+              <span>{{ sec.label }}</span>
+              <span style="margin-left:auto; font-family:'Geist Mono',monospace; font-weight:400; letter-spacing:0">{{ sec.count }}</span>
+            </div>
+            <sc-if value="{{ sec.open }}" hint-placeholder-val="{{ true }}">
+              <sc-for list="{{ sec.items }}" as="it" hint-placeholder-count="3">
+                <div onClick="{{ it.onClick }}" title="{{ it.title }}" style="display:flex; align-items:center; gap:8px; height:26px; padding:0 8px 0 24px; border-radius:5px; background:{{ it.bg }}; color:{{ it.color }}; cursor:pointer" style-hover="background:#1b1b23">
+                  <span style="width:6px; height:6px; border-radius:2px; flex:none; background:{{ it.dot }}"></span>
+                  <span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:'Geist Mono',monospace; font-size:12px">{{ it.name }}</span>
+                  <span style="font-family:'Geist Mono',monospace; font-size:10.5px; color:#6e6e7e; white-space:nowrap">{{ it.meta }}</span>
+                </div>
+              </sc-for>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </aside>
+
+    <div style="flex:1; min-width:0; display:flex; flex-direction:column">
+      <div ref="{{ canvasRef }}" onMouseDown="{{ canvasDown }}" style="flex:1; min-height:0; position:relative; overflow:hidden; background-color:#0e0e13; background-image:{{ gridBg }}; background-size:{{ gridSize }}; background-position:{{ gridPos }}; cursor:{{ canvasCursor }}">
+        <div style="position:absolute; left:0; top:0; width:0; height:0; transform-origin:0 0; transform:{{ layerTf }}">
+          <sc-for list="{{ rels }}" as="r" hint-placeholder-count="0">
+            <svg width="1" height="1" style="position:absolute; left:0; top:0; overflow:visible; pointer-events:none"><path d="{{ r.d }}" style="fill:none; stroke:{{ r.color }}; stroke-width:{{ r.w }}; stroke-dasharray:{{ r.dash }}; stroke-linecap:round"></path></svg>
+          </sc-for>
+          <sc-for list="{{ cards }}" as="t" hint-placeholder-count="0">
+            <div onMouseDown="{{ t.onDown }}" onMouseEnter="{{ t.onEnter }}" onMouseLeave="{{ t.onLeave }}" style="position:absolute; left:{{ t.x }}px; top:{{ t.y }}px; width:232px; background:#17171e; border:1px solid {{ t.border }}; border-radius:8px; box-shadow:{{ t.shadow }}; user-select:none; cursor:grab">
+              <div style="height:36px; display:flex; align-items:center; gap:8px; padding:0 10px 0 12px; border-bottom:1px solid #25252e; background:{{ t.headBg }}; border-radius:7px 7px 0 0">
+                <span style="font-family:'Geist Mono',monospace; font-weight:600; font-size:12.5px; color:{{ t.nameColor }}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ t.name }}</span>
+                <sc-if value="{{ t.dirty }}"><span title="Pending changes" style="width:6px; height:6px; flex:none; border-radius:50%; background:#e8b64c"></span></sc-if>
+                <span style="margin-left:auto; font-family:'Geist Mono',monospace; font-size:10.5px; color:#6e6e7e">{{ t.countLabel }}</span>
+              </div>
+              <div style="padding-bottom:6px">
+                <sc-for list="{{ t.cols }}" as="c" hint-placeholder-count="4">
+                  <div onMouseDown="{{ c.onDown }}" style="height:24px; display:flex; align-items:center; gap:6px; padding:0 12px 0 10px; background:{{ c.bg }}">
+                    <span style="width:18px; flex:none; font-family:'Geist Mono',monospace; font-size:9px; font-weight:600; color:{{ c.badgeColor }}">{{ c.badge }}</span>
+                    <span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:'Geist Mono',monospace; font-size:12px; color:{{ c.nameColor }}">{{ c.name }}</span>
+                    <sc-if value="{{ showTypes }}"><span style="font-family:'Geist Mono',monospace; font-size:10.5px; color:#6e6e7e; white-space:nowrap">{{ c.type }}</span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ noTables }}">
+          <div style="position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; text-align:center">
+            <div style="font-size:12.5px; line-height:1.7; color:#6e6e7e">
+              <div style="color:#c8c8d4; font-size:14px; font-weight:500">{{ emptyTitle }}</div>
+              <div>Press <span style="font-family:'Geist Mono',monospace; color:#a0a0b0">T</span> for a new table, <span style="font-family:'Geist Mono',monospace; color:#a0a0b0">Ctrl+O</span> to open a file, or drop a .db file here.</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showLegend }}"><div onMouseDown="{{ stop }}" style="position:absolute; left:12px; top:12px; white-space:nowrap; display:flex; align-items:center; gap:12px; height:28px; padding:0 12px; font-size:11.5px; color:#8e8e9e; background:rgba(17,17,23,.9); border:1px solid #24242d; border-radius:6px">
+          <span style="font-family:'Geist Mono',monospace; color:#c8c8d4">main</span>
+          <span>{{ diagramMeta }}</span>
+          <span style="width:1px; height:14px; background:#2a2a34"></span>
+          <span style="display:flex; align-items:center; gap:6px"><svg width="22" height="8"><path d="M1 4h20" stroke="#8e8e9e" stroke-width="1.3"></path></svg>required</span>
+          <span style="display:flex; align-items:center; gap:6px"><svg width="22" height="8"><path d="M1 4h20" stroke="#8e8e9e" stroke-width="1.3" stroke-dasharray="4 3"></path></svg>nullable</span>
+        </div></sc-if>
+
+        <sc-if value="{{ engineBanner }}">
+          <div style="position:absolute; left:50%; top:12px; transform:translateX(-50%); padding:8px 12px; border-radius:7px; background:{{ engineBannerBg }}; border:1px solid {{ engineBannerBorder }}; color:{{ engineBannerColor }}; font-size:12px; white-space:nowrap">{{ engineBanner }}</div>
+        </sc-if>
+
+        <div onMouseDown="{{ stop }}" title="Ctrl + scroll to zoom · drag empty space to pan" style="position:absolute; left:12px; bottom:12px; display:flex; align-items:center; height:30px; background:rgba(17,17,23,.92); border:1px solid #24242d; border-radius:6px; overflow:hidden">
+          <button onClick="{{ zoomOut }}" style="width:30px; height:28px; border:none; background:transparent; color:#c8c8d4; font-size:15px; cursor:pointer" style-hover="background:#1d1d25">−</button>
+          <span style="width:48px; text-align:center; font-family:'Geist Mono',monospace; font-size:11px; color:#a0a0b0">{{ zoomPct }}</span>
+          <button onClick="{{ zoomIn }}" style="width:30px; height:28px; border:none; background:transparent; color:#c8c8d4; font-size:15px; cursor:pointer" style-hover="background:#1d1d25">+</button>
+        </div>
+
+        <sc-if value="{{ showMini }}"><div onMouseDown="{{ onMini }}" style="position:absolute; right:12px; bottom:12px; width:180px; height:112px; background:rgba(17,17,23,.92); border:1px solid #24242d; border-radius:8px; overflow:hidden; cursor:pointer">
+          <sc-for list="{{ miniItems }}" as="m" hint-placeholder-count="0">
+            <div style="position:absolute; left:{{ m.x }}px; top:{{ m.y }}px; width:{{ m.w }}px; height:{{ m.h }}px; background:{{ m.bg }}; border-radius:2px"></div>
+          </sc-for>
+          <div style="position:absolute; left:{{ miniView.x }}px; top:{{ miniView.y }}px; width:{{ miniView.w }}px; height:{{ miniView.h }}px; border:1px solid #9d85ff; background:rgba(157,133,255,.08); border-radius:3px; pointer-events:none"></div>
+        </div></sc-if>
+
+        <sc-if value="{{ toast }}">
+          <div style="position:absolute; left:50%; bottom:18px; transform:translateX(-50%); max-width:calc(100% - 40px); padding:9px 14px; border-radius:7px; background:#1f1f28; border:1px solid #33333e; color:#e7e7ee; font-size:12.5px; box-shadow:0 10px 30px rgba(0,0,0,.5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ toast }}</div>
+        </sc-if>
+      </div>
+
+      <div style="flex:none; display:flex; flex-direction:column; background:#111117; border-top:1px solid #1f1f27">
+        <div style="height:34px; display:flex; align-items:stretch; padding:0 8px 0 4px; border-bottom:1px solid #1c1c24">
+          <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4">
+            <div onClick="{{ tb.onClick }}" style="display:flex; align-items:center; gap:7px; padding:0 12px; font-size:12.5px; font-weight:500; white-space:nowrap; color:{{ tb.color }}; box-shadow:inset 0 -2px 0 {{ tb.line }}; cursor:pointer; user-select:none" style-hover="color:#e7e7ee">
+              {{ tb.label }}
+              <sc-if value="{{ tb.badge }}"><span style="min-width:18px; height:16px; padding:0 5px; border-radius:8px; background:#e8b64c; color:#0e0e13; font-family:'Geist Mono',monospace; font-size:10px; font-weight:600; display:grid; place-items:center">{{ tb.badge }}</span></sc-if>
+            </div>
+          </sc-for>
+          <div style="flex:1"></div>
+          <div style="display:flex; align-items:center; gap:8px; min-width:0; overflow:hidden; font-size:11.5px; color:#8e8e9e; white-space:nowrap">
+            <sc-if value="{{ isData }}">
+              <span style="font-family:'Geist Mono',monospace; overflow:hidden; text-overflow:ellipsis">{{ dataMeta }}</span>
+              <sc-if value="{{ canDeleteRow }}"><button onClick="{{ deleteRow }}" style="height:24px; padding:0 10px; border-radius:5px; border:1px solid #4a2a30; background:transparent; color:#ff8a95; font-size:11.5px; cursor:pointer">Delete row</button></sc-if>
+              <sc-if value="{{ canAddRow }}"><button onClick="{{ addRow }}" style="height:24px; padding:0 10px; border-radius:5px; border:1px solid #2a2a34; background:transparent; color:#c8c8d4; font-size:11.5px; cursor:pointer" style-hover="border-color:#3a3a48">+ Row</button></sc-if>
+            </sc-if>
+            <sc-if value="{{ isDDL }}">
+              <div style="display:flex; padding:2px; background:#0e0e13; border:1px solid #24242d; border-radius:6px">
+                <button onClick="{{ ddlTable }}" style="height:22px; padding:0 10px; border:none; border-radius:4px; background:{{ ddlTableBg }}; color:{{ ddlTableColor }}; font-size:11.5px; cursor:pointer">Selected table</button>
+                <button onClick="{{ ddlAll }}" style="height:22px; padding:0 10px; border:none; border-radius:4px; background:{{ ddlAllBg }}; color:{{ ddlAllColor }}; font-size:11.5px; cursor:pointer">Full schema</button>
+              </div>
+              <button onClick="{{ copyDDL }}" style="height:24px; padding:0 10px; border-radius:5px; border:1px solid #2a2a34; background:transparent; color:#c8c8d4; font-size:11.5px; cursor:pointer" style-hover="border-color:#3a3a48">Copy</button>
+            </sc-if>
+            <sc-if value="{{ isChanges }}">
+              <sc-if value="{{ hasOps }}"><button onClick="{{ copyMigration }}" style="height:24px; padding:0 10px; border-radius:5px; border:1px solid #2a2a34; background:transparent; color:#c8c8d4; font-size:11.5px; cursor:pointer" style-hover="border-color:#3a3a48">Copy migration</button></sc-if>
+            </sc-if>
+            <sc-if value="{{ isSQL }}">
+              <span style="font-family:'Geist Mono',monospace; color:#6e6e7e">Ctrl+Enter</span>
+              <button onClick="{{ runSql }}" style="height:24px; padding:0 12px; border-radius:5px; border:none; background:#9d85ff; color:#0e0e13; font-size:11.5px; font-weight:600; cursor:pointer">Run</button>
+            </sc-if>
+            <button onClick="{{ toggleBottom }}" title="Toggle panel (Ctrl+J)" style="width:24px; height:24px; border:none; border-radius:5px; background:transparent; color:#8e8e9e; cursor:pointer; font-size:10px" style-hover="background:#1d1d25; color:#fff">{{ bottomChev }}</button>
+          </div>
+        </div>
+
+        <sc-if value="{{ bottomOpen }}" hint-placeholder-val="{{ true }}">
+          <div style="height:min(250px, 34vh); display:flex; flex-direction:column; min-height:0">
+
+            <sc-if value="{{ isData }}">
+              <sc-if value="{{ hasGrid }}">
+                <div style="flex:1; overflow:auto">
+                  <div style="min-width:{{ grid.total }}px">
+                    <div style="position:sticky; top:0; z-index:1; display:flex; height:30px; background:#15151b; border-bottom:1px solid #24242d">
+                      <div style="width:46px; flex:none; display:flex; align-items:center; justify-content:flex-end; padding-right:10px; font-family:'Geist Mono',monospace; font-size:10.5px; color:#5a5a6a">#</div>
+                      <sc-for list="{{ grid.cols }}" as="h" hint-placeholder-count="5">
+                        <div style="width:{{ h.w }}px; flex:none; display:flex; align-items:center; gap:6px; padding:0 10px; border-left:1px solid #1f1f27; overflow:hidden">
+                          <span style="font-family:'Geist Mono',monospace; font-size:11.5px; font-weight:500; color:{{ h.color }}; white-space:nowrap">{{ h.name }}</span>
+                          <span style="font-family:'Geist Mono',monospace; font-size:9.5px; color:#5a5a6a">{{ h.type }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <sc-for list="{{ grid.rows }}" as="r" hint-placeholder-count="6">
+                      <div style="display:flex; height:26px; border-bottom:1px solid #18181f; background:{{ r.bg }}" style-hover="background:#16161d">
+                        <div onClick="{{ r.onSel }}" title="Select row" style="width:46px; flex:none; display:flex; align-items:center; justify-content:flex-end; padding-right:10px; font-family:'Geist Mono',monospace; font-size:10.5px; color:{{ r.nColor }}; cursor:pointer">{{ r.n }}</div>
+                        <sc-for list="{{ r.cells }}" as="cell" hint-placeholder-count="5">
+                          <div onDoubleClick="{{ cell.onEdit }}" style="width:{{ cell.w }}px; flex:none; display:flex; align-items:center; justify-content:{{ cell.align }}; padding:0 {{ cell.pad }}px; border-left:1px solid #18181f; overflow:hidden; cursor:default">
+                            <sc-if value="{{ cell.editing }}"><input autoFocus="{{ true }}" value="{{ cell.editVal }}" onChange="{{ cell.onEditChange }}" onKeyDown="{{ cell.onEditKey }}" onBlur="{{ cell.onEditBlur }}" spellCheck="false" style="width:100%; height:22px; padding:0 6px; border:1px solid #9d85ff; border-radius:3px; background:#0e0e13; color:#e7e7ee; font-family:'Geist Mono',monospace; font-size:11.5px; outline:none"></sc-if>
+                            <sc-if value="{{ cell.show }}"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:'Geist Mono',monospace; font-size:11.5px; color:{{ cell.color }}; font-style:{{ cell.fs }}">{{ cell.v }}</span></sc-if>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ noGrid }}">
+                <div style="flex:1; display:grid; place-items:center; padding:0 20px; text-align:center; color:#6e6e7e; font-size:12.5px">{{ noGridMsg }}</div>
+              </sc-if>
+            </sc-if>
+
+            <sc-if value="{{ isDDL }}">
+              <div style="flex:1; overflow:auto; padding:10px 0">
+                <sc-for list="{{ ddlLines }}" as="ln" hint-placeholder-count="8">
+                  <div style="display:flex; min-height:19px; font-family:'Geist Mono',monospace; font-size:12px; line-height:19px">
+                    <span style="width:46px; flex:none; text-align:right; padding-right:14px; color:#44444f; user-select:none">{{ ln.n }}</span>
+                    <span style="white-space:pre"><sc-for list="{{ ln.toks }}" as="k"><span style="color:{{ k.c }}">{{ k.t }}</span></sc-for></span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isChanges }}">
+              <sc-if value="{{ hasOps }}">
+                <div style="flex:1; overflow:auto; padding:10px 12px; display:flex; flex-direction:column; gap:8px">
+                  <sc-if value="{{ applyError }}">
+                    <div style="padding:9px 12px; border:1px solid #4a2a30; background:rgba(255,107,122,.08); color:#ff9aa4; border-radius:7px; font-family:'Geist Mono',monospace; font-size:11.5px; line-height:1.5; white-space:pre-wrap">Rolled back, nothing was changed. {{ applyError }}</div>
+                  </sc-if>
+                  <sc-for list="{{ opItems }}" as="op" hint-placeholder-count="2">
+                    <div style="border:1px solid #24242d; border-radius:7px; background:#0f0f14">
+                      <div onClick="{{ op.onClick }}" style="display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; border-bottom:1px solid #1c1c24">
+                        <span style="font-family:'Geist Mono',monospace; font-size:10px; font-weight:600; letter-spacing:.04em; color:{{ op.color }}; border:1px solid {{ op.color }}; border-radius:4px; padding:1px 6px">{{ op.kind }}</span>
+                        <span style="font-size:12.5px; font-weight:500; white-space:nowrap">{{ op.title }}</span>
+                        <span style="margin-left:auto; font-size:11.5px; color:#8e8e9e; text-align:right">{{ op.note }}</span>
+                      </div>
+                      <div style="padding:8px 0; overflow-x:auto">
+                        <sc-for list="{{ op.lines }}" as="ln">
+                          <div style="display:flex; font-family:'Geist Mono',monospace; font-size:11.5px; line-height:18px">
+                            <span style="width:34px; flex:none; text-align:right; padding-right:12px; color:#44444f; user-select:none">{{ ln.n }}</span>
+                            <span style="white-space:pre"><sc-for list="{{ ln.toks }}" as="k"><span style="color:{{ k.c }}">{{ k.t }}</span></sc-for></span>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ noOps }}">
+                <div style="flex:1; display:grid; place-items:center; text-align:center; padding:0 20px; color:#6e6e7e; font-size:12.5px; line-height:1.6">
+                  <div>
+                    <div style="color:#a0a0b0">The model matches {{ fileName }}.</div>
+                    <div>Edit a table or column and the migration SQL appears here. Apply runs it in one transaction and rolls back on any error.</div>
+                  </div>
+                </div>
+              </sc-if>
+            </sc-if>
+
+            <sc-if value="{{ isSQL }}">
+              <div style="flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)">
+                <textarea value="{{ sql }}" onChange="{{ onSql }}" spellCheck="false" style="resize:none; border:none; border-right:1px solid #1f1f27; background:#0e0e13; color:#e7e7ee; padding:12px 14px; font-family:'Geist Mono',monospace; font-size:12.5px; line-height:1.6; outline:none"></textarea>
+                <div style="min-width:0; display:flex; flex-direction:column; min-height:0">
+                  <sc-if value="{{ sqlHasRows }}">
+                    <div style="height:26px; flex:none; display:flex; align-items:center; padding:0 12px; font-family:'Geist Mono',monospace; font-size:11px; color:#6fcf97; border-bottom:1px solid #1c1c24">{{ sqlMeta }}</div>
+                    <div style="flex:1; overflow:auto">
+                      <div style="min-width:{{ sqlGrid.total }}px">
+                        <div style="position:sticky; top:0; display:flex; height:28px; background:#15151b; border-bottom:1px solid #24242d">
+                          <div style="width:40px; flex:none"></div>
+                          <sc-for list="{{ sqlGrid.cols }}" as="h">
+                            <div style="width:{{ h.w }}px; flex:none; display:flex; align-items:center; padding:0 10px; border-left:1px solid #1f1f27; font-family:'Geist Mono',monospace; font-size:11.5px; font-weight:500; color:#c8c8d4; white-space:nowrap; overflow:hidden">{{ h.name }}</div>
+                          </sc-for>
+                        </div>
+                        <sc-for list="{{ sqlGrid.rows }}" as="r">
+                          <div style="display:flex; height:25px; border-bottom:1px solid #18181f" style-hover="background:#16161d">
+                            <div style="width:40px; flex:none; display:flex; align-items:center; justify-content:flex-end; padding-right:10px; font-family:'Geist Mono',monospace; font-size:10.5px; color:#5a5a6a">{{ r.n }}</div>
+                            <sc-for list="{{ r.cells }}" as="cell">
+                              <div style="width:{{ cell.w }}px; flex:none; display:flex; align-items:center; justify-content:{{ cell.align }}; padding:0 10px; border-left:1px solid #18181f; overflow:hidden">
+                                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:'Geist Mono',monospace; font-size:11.5px; color:{{ cell.color }}; font-style:{{ cell.fs }}">{{ cell.v }}</span>
+                              </div>
+                            </sc-for>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ sqlHasMsg }}">
+                    <div style="padding:14px; font-family:'Geist Mono',monospace; font-size:12px; line-height:1.6; color:#6fcf97">{{ sqlMsg }}</div>
+                  </sc-if>
+                  <sc-if value="{{ sqlHasError }}">
+                    <div style="padding:14px; font-family:'Geist Mono',monospace; font-size:12px; line-height:1.6; color:#ff8a95; white-space:pre-wrap">{{ sqlError }}</div>
+                  </sc-if>
+                  <sc-if value="{{ sqlIdle }}">
+                    <div style="flex:1; display:grid; place-items:center; color:#6e6e7e; font-size:12.5px">Run a query to see results.</div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <aside style="width:clamp(300px, 28vw, 328px); flex:none; background:#111117; border-left:1px solid #1f1f27; overflow:auto">
+      <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:14px 14px 12px; border-bottom:1px solid #1c1c24">
+          <div style="display:flex; align-items:center; gap:8px; font-size:10.5px; font-weight:600; letter-spacing:.08em; color:#6e6e7e">
+            TABLE
+            <sc-if value="{{ selDirty }}"><span style="font-family:'Geist Mono',monospace; font-size:10px; font-weight:500; letter-spacing:0; color:#e8b64c">modified</span></sc-if>
+            <sc-if value="{{ selNew }}"><span style="font-family:'Geist Mono',monospace; font-size:10px; font-weight:500; letter-spacing:0; color:#6fcf97">not created yet</span></sc-if>
+            <button onClick="{{ dropSel }}" style="margin-left:auto; height:22px; padding:0 8px; border-radius:5px; border:1px solid transparent; background:transparent; color:#8e8e9e; font-size:11.5px; font-weight:500; letter-spacing:0; cursor:pointer" style-hover="border-color:#4a2a30; color:#ff6b7a">Drop table</button>
+          </div>
+          <input value="{{ selName }}" onChange="{{ onRename }}" spellCheck="false" style="margin-top:6px; width:100%; height:34px; padding:0 8px; margin-left:-8px; border-radius:6px; border:1px solid transparent; background:transparent; color:#e7e7ee; font-family:'Geist Mono',monospace; font-size:17px; font-weight:600; outline:none" style-focus="border-color:#3a3a48; background:#0e0e13">
+          <div style="font-family:'Geist Mono',monospace; font-size:11px; color:#6e6e7e">{{ selMeta }}</div>
+          <div style="display:flex; gap:6px; margin-top:12px">
+            <button onClick="{{ toggleStrict }}" title="Enforce column types (SQLite 3.37+)" style="height:24px; padding:0 9px; border-radius:5px; border:1px solid {{ strictBorder }}; background:{{ strictBg }}; color:{{ strictColor }}; font-family:'Geist Mono',monospace; font-size:10.5px; font-weight:500; cursor:pointer">STRICT</button>
+            <button onClick="{{ toggleRowid }}" title="Clustered on the primary key" style="height:24px; padding:0 9px; border-radius:5px; border:1px solid {{ rowidBorder }}; background:{{ rowidBg }}; color:{{ rowidColor }}; font-family:'Geist Mono',monospace; font-size:10.5px; font-weight:500; cursor:pointer">WITHOUT ROWID</button>
+          </div>
+          <sc-for list="{{ warnings }}" as="w" hint-placeholder-count="0">
+            <div style="margin-top:8px; padding:7px 9px; border-radius:6px; background:rgba(232,182,76,.08); color:#e8c67c; font-size:11.5px; line-height:1.45">{{ w }}</div>
+          </sc-for>
+        </div>
+
+        <div style="padding:12px 8px 14px; border-bottom:1px solid #1c1c24">
+          <div style="display:flex; align-items:center; padding:0 4px 8px; font-size:10.5px; font-weight:600; letter-spacing:.08em; color:#6e6e7e">
+            COLUMNS
+            <span style="margin-left:6px; font-family:'Geist Mono',monospace; font-weight:400; letter-spacing:0">{{ selColCount }}</span>
+            <button onClick="{{ addColumn }}" style="margin-left:auto; height:22px; padding:0 8px; border-radius:5px; border:none; background:transparent; color:#b9a8ff; font-size:11.5px; font-weight:500; letter-spacing:0; cursor:pointer" style-hover="background:rgba(157,133,255,.12)">+ Add column</button>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:2px">
+            <sc-for list="{{ insCols }}" as="c" hint-placeholder-count="6">
+              <div style="border-radius:6px; background:{{ c.bg }}; border:1px solid {{ c.border }}">
+                <div style="display:flex; align-items:center; gap:2px; height:32px; padding:0 2px 0 3px">
+                  <span style="width:14px; flex:none; text-align:center; font-family:'Geist Mono',monospace; font-size:8.5px; font-weight:600; color:{{ c.badgeColor }}">{{ c.badge }}</span>
+                  <input value="{{ c.name }}" onChange="{{ c.onName }}" onFocus="{{ c.onFocus }}" spellCheck="false" style="flex:1; min-width:0; height:24px; padding:0 6px; border-radius:4px; border:1px solid transparent; background:transparent; color:#e7e7ee; font-family:'Geist Mono',monospace; font-size:12px; text-overflow:ellipsis; outline:none" style-focus="border-color:#3a3a48; background:#0e0e13">
+                  <select data-val="{{ c.type }}" value="{{ c.type }}" onChange="{{ c.onType }}" style="width:64px; flex:none; height:24px; padding:0; border-radius:4px; border:1px solid #24242d; background:#0e0e13; color:#62c6d6; font-family:'Geist Mono',monospace; font-size:10.5px; outline:none">{{ c.typeOpts }}</select>
+                  <button onClick="{{ c.onPK }}" title="Primary key" style="width:19px; height:22px; flex:none; padding:0; border:none; border-radius:4px; background:{{ c.pkBg }}; color:{{ c.pkC }}; font-family:'Geist Mono',monospace; font-size:9px; font-weight:600; cursor:pointer">PK</button>
+                  <button onClick="{{ c.onNN }}" title="NOT NULL" style="width:19px; height:22px; flex:none; padding:0; border:none; border-radius:4px; background:{{ c.nnBg }}; color:{{ c.nnC }}; font-family:'Geist Mono',monospace; font-size:9px; font-weight:600; cursor:pointer">NN</button>
+                  <button onClick="{{ c.onUQ }}" title="UNIQUE" style="width:19px; height:22px; flex:none; padding:0; border:none; border-radius:4px; background:{{ c.uqBg }}; color:{{ c.uqC }}; font-family:'Geist Mono',monospace; font-size:9px; font-weight:600; cursor:pointer">UQ</button>
+                  <button onClick="{{ c.onToggle }}" title="More" style="width:16px; height:22px; flex:none; padding:0; border:none; border-radius:4px; background:transparent; color:#6e6e7e; font-size:9px; cursor:pointer" style-hover="color:#e7e7ee">{{ c.chev }}</button>
+                </div>
+                <sc-if value="{{ c.open }}">
+                  <div style="display:grid; grid-template-columns:78px minmax(0,1fr); gap:6px 8px; align-items:center; padding:4px 10px 10px 22px; font-size:11.5px; color:#8e8e9e">
+                    <span>Default</span>
+                    <input value="{{ c.def }}" onChange="{{ c.onDef }}" placeholder="none" spellCheck="false" style="height:26px; padding:0 8px; border-radius:5px; border:1px solid #24242d; background:#0e0e13; color:#e8b64c; font-family:'Geist Mono',monospace; font-size:11.5px; outline:none" style-focus="border-color:#9d85ff">
+                    <span>References</span>
+                    <select data-val="{{ c.fkVal }}" value="{{ c.fkVal }}" onChange="{{ c.onFK }}" style="height:26px; border-radius:5px; border:1px solid #24242d; background:#0e0e13; color:#62c6d6; font-family:'Geist Mono',monospace; font-size:11.5px; outline:none">{{ fkOptionEls }}</select>
+                    <span>On delete</span>
+                    <select data-val="{{ c.onDelete }}" value="{{ c.onDelete }}" onChange="{{ c.onOD }}" disabled="{{ c.noFK }}" style="height:26px; border-radius:5px; border:1px solid #24242d; background:#0e0e13; color:#c8c8d4; font-family:'Geist Mono',monospace; font-size:11.5px; outline:none">
+                      <option value="NO ACTION">NO ACTION</option><option value="CASCADE">CASCADE</option><option value="SET NULL">SET NULL</option><option value="SET DEFAULT">SET DEFAULT</option><option value="RESTRICT">RESTRICT</option>
+                    </select>
+                    <div style="grid-column:1 / -1; display:flex; gap:6px; margin-top:4px">
+                      <button onClick="{{ c.onIndex }}" style="height:24px; padding:0 9px; border-radius:5px; border:1px solid #2a2a34; background:transparent; color:#c8c8d4; font-size:11.5px; cursor:pointer" style-hover="border-color:#3a3a48">{{ c.indexLabel }}</button>
+                      <button onClick="{{ c.onRemove }}" style="margin-left:auto; height:24px; padding:0 9px; border-radius:5px; border:1px solid transparent; background:transparent; color:#ff6b7a; font-size:11.5px; cursor:pointer" style-hover="border-color:#4a2a30">Remove column</button>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="padding:12px 14px 14px; border-bottom:1px solid #1c1c24">
+          <div style="padding-bottom:8px; font-size:10.5px; font-weight:600; letter-spacing:.08em; color:#6e6e7e">RELATIONS</div>
+          <sc-for list="{{ relItems }}" as="ri" hint-placeholder-count="2">
+            <div onClick="{{ ri.onClick }}" style="display:flex; align-items:baseline; gap:8px; padding:5px 6px; margin:0 -6px; border-radius:5px; cursor:pointer" style-hover="background:#1b1b23">
+              <span style="width:22px; flex:none; font-family:'Geist Mono',monospace; font-size:9.5px; font-weight:600; color:{{ ri.dirColor }}">{{ ri.dir }}</span>
+              <span style="flex:1; min-width:0; font-family:'Geist Mono',monospace; font-size:11.5px; color:#c8c8d4; overflow-wrap:anywhere">{{ ri.label }}</span>
+              <span style="font-family:'Geist Mono',monospace; font-size:10px; color:#6e6e7e; white-space:nowrap">{{ ri.sub }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noRels }}"><div style="font-size:12px; color:#6e6e7e">No foreign keys in or out. Set one from a column's References field.</div></sc-if>
+        </div>
+
+        <div style="padding:12px 14px 20px">
+          <div style="padding-bottom:8px; font-size:10.5px; font-weight:600; letter-spacing:.08em; color:#6e6e7e">INDEXES</div>
+          <sc-for list="{{ idxItems }}" as="ix" hint-placeholder-count="1">
+            <div style="display:flex; align-items:center; gap:8px; padding:5px 0">
+              <div style="flex:1; min-width:0">
+                <div style="font-family:'Geist Mono',monospace; font-size:11.5px; color:#c8c8d4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ ix.name }}</div>
+                <div style="font-family:'Geist Mono',monospace; font-size:10.5px; color:#6e6e7e">({{ ix.cols }})</div>
+              </div>
+              <sc-if value="{{ ix.unique }}"><span style="font-family:'Geist Mono',monospace; font-size:9.5px; color:#a996ff">UNIQUE</span></sc-if>
+              <button onClick="{{ ix.onRemove }}" title="Drop index" style="width:22px; height:22px; border:none; border-radius:4px; background:transparent; color:#6e6e7e; cursor:pointer; font-size:13px" style-hover="color:#ff6b7a; background:#1b1b23">×</button>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noIdx }}"><div style="font-size:12px; color:#6e6e7e">No indexes. Add one from a column's detail row.</div></sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ noSel }}">
+        <div style="padding:14px">
+          <div style="font-size:10.5px; font-weight:600; letter-spacing:.08em; color:#6e6e7e">DATABASE</div>
+          <div style="margin-top:6px; font-family:'Geist Mono',monospace; font-size:17px; font-weight:600; overflow-wrap:anywhere">{{ fileName }}</div>
+          <div style="font-size:11.5px; color:#6e6e7e; margin-top:2px">{{ locationLabel }}</div>
+          <div style="margin-top:16px; display:grid; grid-template-columns:auto 1fr; gap:9px 16px; align-items:center; font-size:12px">
+            <span style="color:#8e8e9e">SQLite</span><span style="font-family:'Geist Mono',monospace; text-align:right">{{ info.version }}</span>
+            <span style="color:#8e8e9e">Size</span><span style="font-family:'Geist Mono',monospace; text-align:right">{{ info.sizeLong }}</span>
+            <span style="color:#8e8e9e">page_size</span><span style="font-family:'Geist Mono',monospace; text-align:right">{{ info.pageSize }}</span>
+            <span style="color:#8e8e9e">user_version</span><span style="font-family:'Geist Mono',monospace; text-align:right">{{ info.userVersion }}</span>
+            <span style="color:#8e8e9e">encoding</span><span style="font-family:'Geist Mono',monospace; text-align:right">{{ info.encoding }}</span>
+            <span style="color:#8e8e9e">foreign_keys</span>
+            <button onClick="{{ toggleFk }}" style="justify-self:end; height:24px; padding:0 10px; border-radius:5px; border:1px solid {{ fkBorder }}; background:{{ fkBg }}; color:{{ fkColor }}; font-family:'Geist Mono',monospace; font-size:11px; cursor:pointer">{{ fkLabel }}</button>
+          </div>
+          <div style="margin-top:18px; display:flex; gap:6px">
+            <button onClick="{{ integrity }}" style="flex:1; height:30px; border-radius:6px; border:1px solid #2a2a34; background:transparent; color:#c8c8d4; font-size:12px; cursor:pointer" style-hover="border-color:#3a3a48; color:#fff">Integrity check</button>
+            <button onClick="{{ vacuum }}" style="flex:1; height:30px; border-radius:6px; border:1px solid #2a2a34; background:transparent; color:#c8c8d4; font-size:12px; cursor:pointer" style-hover="border-color:#3a3a48; color:#fff">VACUUM</button>
+          </div>
+          <sc-if value="{{ integrityMsg }}"><div style="margin-top:10px; font-family:'Geist Mono',monospace; font-size:11.5px; line-height:1.5; color:{{ integrityColor }}; white-space:pre-wrap">{{ integrityMsg }}</div></sc-if>
+          <div style="margin-top:22px; font-size:12px; line-height:1.6; color:#6e6e7e">Select a table on the canvas or in the sidebar to edit it. Press <span style="font-family:'Geist Mono',monospace; color:#a0a0b0">T</span> for a new table, <span style="font-family:'Geist Mono',monospace; color:#a0a0b0">?</span> for shortcuts.</div>
+        </div>
+      </sc-if>
+    </aside>
+  </div>
+
+  <div style="height:24px; flex:none; display:flex; align-items:center; gap:14px; padding:0 12px; background:#0a0a0e; border-top:1px solid #1f1f27; font-family:'Geist Mono',monospace; font-size:10.5px; color:#6e6e7e; white-space:nowrap; overflow:hidden">
+    <span style="display:flex; align-items:center; gap:6px"><span style="width:6px; height:6px; border-radius:50%; background:{{ engineDot }}"></span>{{ engineLabel }}</span>
+    <span>SQLite {{ info.version }}</span>
+    <span>foreign_keys {{ fkLabel }}</span>
+    <div style="flex:1"></div>
+    <span style="color:{{ diskColor }}">{{ diskLabel }}</span>
+    <span style="color:{{ pendingColor }}">{{ statusPending }}</span>
+    <span>user_version {{ info.userVersion }}</span>
+    <span>{{ zoomPct }}</span>
+  </div>
+
+  <sc-if value="{{ dragging }}">
+    <div style="position:absolute; inset:8px; z-index:70; border:2px dashed #9d85ff; border-radius:12px; background:rgba(14,14,19,.82); display:grid; place-items:center; pointer-events:none">
+      <div style="text-align:center">
+        <div style="font-size:16px; font-weight:600; color:#e7e7ee">Drop to open</div>
+        <div style="margin-top:4px; font-size:12.5px; color:#8e8e9e">Any SQLite 3 database file</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showHelp }}">
+    <div onMouseDown="{{ closeHelp }}" style="position:absolute; inset:0; z-index:80; background:rgba(5,5,8,.6); display:grid; place-items:center">
+      <div onMouseDown="{{ stop }}" style="width:min(460px, calc(100% - 40px)); padding:18px 20px 20px; background:#17171e; border:1px solid #2a2a34; border-radius:10px; box-shadow:0 24px 60px rgba(0,0,0,.6)">
+        <div style="display:flex; align-items:center">
+          <span style="font-size:14px; font-weight:600">Keyboard shortcuts</span>
+          <button onClick="{{ closeHelp }}" style="margin-left:auto; width:24px; height:24px; border:none; border-radius:5px; background:transparent; color:#8e8e9e; font-size:14px; cursor:pointer" style-hover="background:#24242d; color:#fff">×</button>
+        </div>
+        <div style="margin-top:14px; display:grid; grid-template-columns:1fr auto; gap:8px 20px; font-size:12.5px">
+          <sc-for list="{{ shortcuts }}" as="sc">
+            <span style="color:#c8c8d4">{{ sc.label }}</span>
+            <span style="font-family:'Geist Mono',monospace; font-size:11.5px; color:#a996ff; text-align:right">{{ sc.keys }}</span>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;lineStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;curved&quot;,&quot;orthogonal&quot;,&quot;straight&quot;],&quot;default&quot;:&quot;curved&quot;,&quot;tsType&quot;:&quot;'curved'|'orthogonal'|'straight'&quot;,&quot;section&quot;:&quot;Diagram&quot;},&quot;gridStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dots&quot;,&quot;lines&quot;,&quot;none&quot;],&quot;default&quot;:&quot;dots&quot;,&quot;tsType&quot;:&quot;'dots'|'lines'|'none'&quot;,&quot;section&quot;:&quot;Diagram&quot;},&quot;showTypes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Diagram&quot;}}">
+const W = 232, HEAD = 36, ROW = 24, PAGE = 500;
+const TYPES = ['INTEGER', 'TEXT', 'REAL', 'BLOB', 'NUMERIC', 'ANY'];
+const STRICT_OK = new Set(['INT', 'INTEGER', 'REAL', 'TEXT', 'BLOB', 'ANY']);
+const KC = { CREATE: '#6fcf97', DROP: '#ff6b7a', RENAME: '#a996ff', ALTER: '#a996ff', REBUILD: '#e8b64c', INDEX: '#62c6d6' };
+const KW = new Set('CREATE TABLE PRIMARY KEY NOT NULL UNIQUE DEFAULT REFERENCES ON DELETE CASCADE SET RESTRICT NO ACTION INDEX STRICT WITHOUT ROWID ALTER ADD COLUMN DROP RENAME TO INSERT INTO SELECT FROM PRAGMA BEGIN COMMIT IF EXISTS CURRENT_TIMESTAMP VIEW TRIGGER AS WHERE AND OR AFTER BEFORE UPDATE OF FOR EACH ROW WHEN END VALUES LEFT JOIN GROUP BY ORDER LIMIT COUNT COALESCE AUTOINCREMENT NEW OLD'.split(' '));
+const RESERVED = new Set('ABORT ACTION ADD AFTER ALL ALTER ANALYZE AND AS ASC ATTACH AUTOINCREMENT BEFORE BEGIN BETWEEN BY CASCADE CASE CAST CHECK COLLATE COLUMN COMMIT CONFLICT CONSTRAINT CREATE CROSS CURRENT_DATE CURRENT_TIME CURRENT_TIMESTAMP DATABASE DEFAULT DEFERRABLE DEFERRED DELETE DESC DETACH DISTINCT DROP EACH ELSE END ESCAPE EXCEPT EXCLUSIVE EXISTS EXPLAIN FAIL FOR FOREIGN FROM FULL GLOB GROUP HAVING IF IGNORE IMMEDIATE IN INDEX INDEXED INITIALLY INNER INSERT INSTEAD INTERSECT INTO IS ISNULL JOIN KEY LEFT LIKE LIMIT MATCH NATURAL NO NOT NOTNULL NULL OF OFFSET ON OR ORDER OUTER PLAN PRAGMA PRIMARY QUERY RAISE RECURSIVE REFERENCES REGEXP REINDEX RELEASE RENAME REPLACE RESTRICT RIGHT ROLLBACK ROW SAVEPOINT SELECT SET TABLE TEMP TEMPORARY THEN TO TRANSACTION TRIGGER UNION UNIQUE UPDATE USING VACUUM VALUES VIEW VIRTUAL WHEN WHERE WITH WITHOUT'.split(' '));
+const qi = n => /^[A-Za-z_][A-Za-z0-9_]*$/.test(n) && !RESERVED.has(String(n).toUpperCase()) ? n : '"' + String(n).replace(/"/g, '""') + '"';
+
+const SPEC = [
+  ['users', 60, 60, [['id', 'INTEGER', 'pk'], ['email', 'TEXT', 'nn uq'], ['display_name', 'TEXT'], ['password_hash', 'TEXT', 'nn'], ['is_admin', 'INTEGER', 'nn', '0'], ['created_at', 'TEXT', 'nn', 'CURRENT_TIMESTAMP']]],
+  ['sessions', 60, 380, [['id', 'TEXT', 'pk nn'], ['user_id', 'INTEGER', 'nn', null, 'users.id', 'CASCADE'], ['expires_at', 'TEXT', 'nn'], ['user_agent', 'TEXT']]],
+  ['projects', 380, 40, [['id', 'INTEGER', 'pk'], ['owner_id', 'INTEGER', 'nn', null, 'users.id', 'RESTRICT'], ['name', 'TEXT', 'nn'], ['slug', 'TEXT', 'nn uq'], ['archived', 'INTEGER', 'nn', '0'], ['created_at', 'TEXT', 'nn', 'CURRENT_TIMESTAMP']]],
+  ['tasks', 700, 110, [['id', 'INTEGER', 'pk'], ['project_id', 'INTEGER', 'nn', null, 'projects.id', 'CASCADE'], ['assignee_id', 'INTEGER', '', null, 'users.id', 'SET NULL'], ['title', 'TEXT', 'nn'], ['body', 'TEXT'], ['status', 'TEXT', 'nn', "'todo'"], ['priority', 'INTEGER', 'nn', '2'], ['due_at', 'TEXT'], ['created_at', 'TEXT', 'nn', 'CURRENT_TIMESTAMP']]],
+  ['comments', 380, 370, [['id', 'INTEGER', 'pk'], ['task_id', 'INTEGER', 'nn', null, 'tasks.id', 'CASCADE'], ['author_id', 'INTEGER', 'nn', null, 'users.id', 'CASCADE'], ['body', 'TEXT', 'nn'], ['created_at', 'TEXT', 'nn', 'CURRENT_TIMESTAMP']]],
+  ['task_tags', 1020, 120, [['task_id', 'INTEGER', 'pk nn', null, 'tasks.id', 'CASCADE'], ['tag_id', 'INTEGER', 'pk nn', null, 'tags.id', 'CASCADE']], { withoutRowid: true }],
+  ['tags', 1020, 330, [['id', 'INTEGER', 'pk'], ['name', 'TEXT', 'nn uq'], ['color', 'TEXT']]],
+];
+const IDX = { tasks: [['idx_tasks_project', ['project_id']], ['idx_tasks_assignee_status', ['assignee_id', 'status']], ['idx_tasks_due', ['due_at']]], comments: [['idx_comments_task', ['task_id']]], sessions: [['idx_sessions_user', ['user_id']], ['idx_sessions_expires', ['expires_at']]] };
+const SAMPLE_EXTRAS = `CREATE VIEW v_open_tasks AS SELECT id, project_id, assignee_id, title, status, priority, due_at FROM tasks WHERE status != 'done';
+CREATE VIEW v_project_stats AS SELECT p.id, p.name, count(t.id) AS tasks, sum(t.status = 'done') AS done FROM projects p LEFT JOIN tasks t ON t.project_id = p.id GROUP BY p.id;
+CREATE TRIGGER trg_tasks_done_comment AFTER UPDATE OF status ON tasks WHEN NEW.status = 'done' AND OLD.status != 'done' BEGIN INSERT INTO comments (task_id, author_id, body) VALUES (NEW.id, COALESCE(NEW.assignee_id, 1), 'Marked done'); END;`;
+
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+function uid(p) { return p + Math.random().toString(36).slice(2, 9); }
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function san(v) { return v.replace(/[^A-Za-z0-9_]/g, '_'); }
+function cardH(t) { return 2 + HEAD + t.cols.length * ROW + 6; }
+function fmtN(n) { return n < 1000 ? String(n) : (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k'; }
+function fmtBytes(b) { return b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(1) + ' MB'; }
+
+function build() {
+  return SPEC.map(([name, x, y, cols, opts]) => ({
+    id: 't_' + name, name, x, y, count: 0, strict: false, withoutRowid: false, triggers: [], lossy: [], ...(opts || {}),
+    cols: cols.map(([n, type, flags = '', def = null, fk = null, od = null]) => ({
+      id: 'c_' + name + '_' + n, name: n, type, pk: /pk/.test(flags), nn: /nn/.test(flags), uq: /uq/.test(flags), def, autoinc: false,
+      fk: fk ? { t: 't_' + fk.split('.')[0], c: 'c_' + fk.replace('.', '_'), onDelete: od || 'NO ACTION' } : null,
+    })),
+    indexes: (IDX[name] || []).map(([iname, ic]) => ({ id: 'i_' + iname, name: iname, unique: false, cols: ic.map(c => 'c_' + name + '_' + c) })),
+  }));
+}
+
+function sample() {
+  const P = [['ada', 'Ada Lovelace'], ['linus', 'Linus Torvalds'], ['grace', 'Grace Hopper'], ['ken', 'Ken Thompson'], ['margaret', 'Margaret Hamilton'], ['dennis', null], ['barbara', 'Barbara Liskov'], ['edsger', 'Edsger Dijkstra']];
+  const ts = (i, off = 0) => new Date(Date.UTC(2025, 8, 1) + (i * 3.3 + off) * 86400000 + i * 3721000).toISOString().slice(0, 19).replace('T', ' ');
+  const hx = (i, n) => { let s = '', x = (i * 2654435761) >>> 0; for (let k = 0; k < n; k++) { x = (x * 1103515245 + 12345) >>> 0; s += '0123456789abcdef'[(x >>> 16) & 15]; } return s; };
+  const R = {};
+  R.users = P.map((p, i) => ({ id: i + 1, email: p[0] + '@tally.dev', display_name: p[1], password_hash: '$argon2id$v=19$m=65536,t=3,p=4$' + hx(i + 1, 22), is_admin: i < 2 ? 1 : 0, created_at: ts(i) }));
+  const UA = ['Firefox/131.0 (X11; Linux x86_64)', 'curl/8.10.1', 'Chromium/129 (X11; Linux x86_64)', 'tally-cli/0.9.2', 'Firefox/131.0 (X11; Linux x86_64)', null, 'Safari/17.6 (Macintosh)', 'tally-cli/0.9.2'];
+  R.sessions = UA.map((ua, i) => ({ id: hx(i + 40, 32), user_id: [1, 3, 1, 2, 5, 7, 4, 1][i], expires_at: ts(i, 400), user_agent: ua }));
+  const PR = ['tally-core', 'billing', 'docs-site', 'infra', 'mobile-app', 'design-system', 'ops-runbooks'];
+  R.projects = PR.map((n, i) => ({ id: i + 1, owner_id: [1, 2, 3, 2, 5, 7, 4][i], name: n.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase()), slug: n, archived: i === 6 ? 1 : 0, created_at: ts(i, -30) }));
+  const TT = ['Migrate auth hashes to argon2id', 'Fix WAL checkpoint stall on large imports', 'CSV export for project reports', 'Paginate comments endpoint', 'Nightly backup via sqlite3 .backup', 'Index tasks by due_at', 'Remove legacy v1 routes', 'Retry failed webhook deliveries', 'Profile slow project list query', 'Dark mode for settings page', 'FTS5 search over task titles', 'Enforce foreign_keys in test harness'];
+  const ST = ['doing', 'todo', 'done', 'doing', 'done', 'todo', 'blocked', 'todo', 'doing', 'done', 'todo', 'done'];
+  const BD = ['repro attached', 'needs design review', 'blocked on infra', 'ready for review'];
+  R.tasks = TT.map((t, i) => ({ id: 4100 + i * 37, project_id: [1, 1, 2, 1, 4, 1, 1, 2, 1, 6, 1, 1][i], assignee_id: [1, 2, 3, null, 4, 2, null, 5, 2, 7, 1, 3][i], title: t, body: i % 3 === 0 ? null : 'See thread in #eng — ' + BD[i % 4], status: ST[i], priority: [1, 2, 3, 2, 1, 2, 3, 2, 1, 3, 2, 2][i], due_at: i % 4 === 1 ? null : ts(i, 60).slice(0, 10), created_at: ts(i, 20) }));
+  const CB = ['Hashes upgrade on next login, no forced reset.', 'Agreed. Shipping behind a flag first.', 'Reproduces with a 2 GB import; checkpoint starves.', 'Cursor-based, not OFFSET. OFFSET degrades past 10k.', 'Using .backup so it is safe under WAL.', 'Restore tested on a fresh box. Works.', 'Two clients still call /v1/tasks.', 'EXPLAIN QUERY PLAN shows a full scan on tasks.', 'FTS5 with the trigram tokenizer?'];
+  R.comments = CB.map((b, i) => ({ id: 90210 + i * 13, task_id: R.tasks[[0, 0, 1, 3, 4, 4, 6, 8, 10][i]].id, author_id: [2, 1, 4, 3, 1, 5, 2, 7, 1][i], body: b, created_at: ts(i, 70) }));
+  R.tags = [['bug', '#ff6b7a'], ['perf', '#e8b64c'], ['db', '#62c6d6'], ['ux', '#9d85ff'], ['infra', null], ['good-first-issue', '#6fcf97']].map((t, i) => ({ id: i + 1, name: t[0], color: t[1] }));
+  R.task_tags = [[0, 1], [1, 2], [1, 3], [3, 2], [4, 5], [5, 2], [5, 3], [8, 2], [9, 4], [10, 3]].map(([a, b]) => ({ task_id: R.tasks[a].id, tag_id: b }));
+  return R;
+}
+
+const API_TOKEN = window.TABULA && window.TABULA.token;
+async function api(name, body) {
+  const r = await fetch('/api/' + name, {
+    method: body === undefined ? 'GET' : 'POST',
+    headers: { 'x-tabula-token': API_TOKEN, ...(body === undefined ? {} : { 'content-type': 'application/json' }) },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const data = await r.json().catch(() => ({ error: 'Invalid response from Tabula' }));
+  if (!r.ok || data.error) { const e = new Error(data.error || ('HTTP ' + r.status)); Object.assign(e, data); throw e; }
+  return data;
+}
+function tableModels(schema, layout, prev) {
+  if (!schema) return [];
+  const old = Object.fromEntries((prev || []).map(t => [t.name, t]));
+  const pos = (layout && layout.tables) || {};
+  const tables = (schema.tables || []).filter(t => t.kind === 'table').map((t, n) => {
+    const prior = old[t.name], xy = pos[t.name];
+    const cols = t.cols.map(c => ({
+      id: 'c_' + t.name + '_' + c.name, name: c.name, type: c.type || '', pk: c.pk > 0, pkOrder: c.pk,
+      nn: !!c.nn, uq: !!c.uq, def: c.def == null ? null : String(c.def), autoinc: !!c.ai,
+      fk: c.fk ? { t: 't_' + c.fk.table, c: 'c_' + c.fk.table + '_' + c.fk.col, onDelete: c.fk.onDelete || 'NO ACTION' } : null,
+    }));
+    return {
+      id: 't_' + t.name, name: t.name, x: prior ? prior.x : xy ? xy[0] : null, y: prior ? prior.y : xy ? xy[1] : null,
+      count: t.count == null ? 0 : t.count, strict: !!t.strict, withoutRowid: !!t.withoutRowid,
+      cols: cols.map(({ pkOrder, ...c }) => c),
+      indexes: (t.indexes || []).map(ix => ({ id: 'i_' + ix.name, name: ix.name, unique: !!ix.unique, cols: (ix.cols || []).map(c => 'c_' + t.name + '_' + c), raw: ix.raw || null, rawTable: t.name, label: ix.raw ? 'expression / partial' : null })),
+      triggers: (schema.triggers || []).filter(x => x.table === t.name).map(x => x.sql), lossy: t.lossy || [],
+    };
+  });
+  const unplaced = tables.filter(t => t.x == null);
+  if (unplaced.length) {
+    const target = layoutTargets(tables.map(t => ({ ...t, x: t.x == null ? 0 : t.x, y: t.y == null ? 0 : t.y })));
+    unplaced.forEach(t => { t.x = target[t.id].x; t.y = target[t.id].y; });
+  }
+  return tables;
+}
+function dbInfo(db) {
+  if (!db) return { version: '—', pageSize: 0, pageCount: 0, userVersion: 0, encoding: 'UTF-8', size: 0, schemaVersion: null, journal: '—' };
+  return { version: db.sqlite, pageSize: db.pageSize, pageCount: db.pageCount, userVersion: db.userVersion, encoding: 'UTF-8', size: db.size + (db.wal || 0), schemaVersion: db.schemaVersion, journal: db.journal };
+}
+function loadPos() { return {}; }
+
+function layoutTargets(ts) {
+  const byId = Object.fromEntries(ts.map(t => [t.id, t])), memo = {};
+  const lvl = (t, seen) => {
+    if (memo[t.id] != null) return memo[t.id]; if (seen.has(t.id)) return 0; seen.add(t.id);
+    let m = 0; t.cols.forEach(c => { if (c.fk && c.fk.t !== t.id && byId[c.fk.t]) m = Math.max(m, 1 + lvl(byId[c.fk.t], seen)); });
+    return (memo[t.id] = m);
+  };
+  const cols = {}; ts.forEach(t => { const l = lvl(t, new Set()); (cols[l] = cols[l] || []).push(t); });
+  const hs = Object.values(cols).map(c => c.reduce((a, t) => a + cardH(t) + 48, -48)), maxH = Math.max(0, ...hs);
+  const target = {};
+  Object.keys(cols).forEach((l, li) => { let y = 40 + (maxH - hs[li]) / 2; cols[l].forEach(t => { target[t.id] = { x: 40 + l * 312, y: Math.round(y / 8) * 8 }; y += cardH(t) + 48; }); });
+  return target;
+}
+
+function introspect(db, prev, pos) {
+  const master = rows(db, "SELECT type, name, tbl_name, sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY rowid");
+  const virt = master.filter(m => m.type === 'table' && /^\s*CREATE\s+VIRTUAL/i.test(m.sql || '')).map(m => m.name);
+  const isShadow = n => virt.some(v => n !== v && n.startsWith(v + '_'));
+  let tl = {}; try { rows(db, 'PRAGMA table_list').forEach(r => { if (r.schema === 'main') tl[r.name] = r; }); } catch (e) {}
+  const prevBy = Object.fromEntries((prev || []).map(t => [t.name, t]));
+  const tableList = master.filter(m => m.type === 'table' && !virt.includes(m.name) && !isShadow(m.name));
+  const tables = tableList.map(m => {
+    const name = m.name, sql = m.sql || '';
+    const info = rows(db, 'SELECT * FROM pragma_table_info(?)', [name]);
+    const cols = info.map(r => ({ id: 'c_' + name + '_' + r.name, name: r.name, type: r.type || '', pk: r.pk > 0, pkOrder: r.pk, nn: !!r.notnull, uq: false, def: r.dflt_value == null ? null : String(r.dflt_value), autoinc: false, fk: null }));
+    const pkCols = cols.filter(c => c.pk).sort((a, b) => a.pkOrder - b.pkOrder);
+    if (pkCols.length === 1 && /AUTOINCREMENT/i.test(sql)) pkCols[0].autoinc = true;
+    const indexes = [];
+    rows(db, 'SELECT * FROM pragma_index_list(?)', [name]).forEach(ix => {
+      const ic = rows(db, 'SELECT * FROM pragma_index_info(?)', [ix.name]);
+      if (ix.origin === 'u' && ic.length === 1) { const c = cols.find(x => x.name === ic[0].name); if (c) c.uq = true; return; }
+      if (ix.origin !== 'c') return;
+      const raw = (master.find(x => x.type === 'index' && x.name === ix.name) || {}).sql;
+      const simple = ic.every(x => x.name != null) && !ix.partial;
+      indexes.push({ id: 'i_' + ix.name, name: ix.name, unique: !!ix.unique, cols: simple ? ic.map(x => 'c_' + name + '_' + x.name) : [], raw: simple ? null : raw, rawTable: name, label: simple ? null : 'expression / partial' });
+    });
+    const fks = {};
+    rows(db, 'SELECT * FROM pragma_foreign_key_list(?)', [name]).forEach(f => { (fks[f.id] = fks[f.id] || []).push(f); });
+    const lossy = [];
+    Object.values(fks).forEach(g => {
+      if (g.length !== 1) { lossy.push('composite FOREIGN KEY'); return; }
+      const f = g[0], c = cols.find(x => x.name === f.from); if (!c) return;
+      let to = f.to;
+      if (to == null) { try { const tpk = rows(db, 'SELECT name FROM pragma_table_info(?) WHERE pk > 0', [f.table]); if (tpk.length === 1) to = tpk[0].name; } catch (e) {} }
+      c.fk = { t: 't_' + f.table, c: 'c_' + f.table + '_' + to, onDelete: f.on_delete || 'NO ACTION' };
+    });
+    if (/\bCHECK\s*\(/i.test(sql)) lossy.push('CHECK');
+    if (/\bCOLLATE\b/i.test(sql)) lossy.push('COLLATE');
+    if (/\bGENERATED\b|\bAS\s*\(/i.test(sql)) lossy.push('generated columns');
+    if (/\bON\s+UPDATE\b/i.test(sql)) lossy.push('ON UPDATE');
+    let count = 0; try { count = scalar(db, 'SELECT count(*) FROM ' + qi(name)); } catch (e) {}
+    const t = tl[name] || {};
+    const p = prevBy[name] || (pos[name] ? { x: pos[name][0], y: pos[name][1] } : null);
+    return {
+      id: 't_' + name, name, x: p ? p.x : null, y: p ? p.y : null, count,
+      strict: t.strict != null ? !!t.strict : /\)\s*[^)]*\bSTRICT\b[^)]*$/i.test(sql),
+      withoutRowid: t.wr != null ? !!t.wr : /WITHOUT\s+ROWID\s*[,;]?\s*[^)]*$/i.test(sql),
+      cols: cols.map(({ pkOrder, ...c }) => c), indexes, lossy,
+      triggers: master.filter(x => x.type === 'trigger' && x.tbl_name === name).map(x => x.sql),
+    };
+  });
+  const unplaced = tables.filter(t => t.x == null);
+  if (unplaced.length === tables.length) { const tg = layoutTargets(tables); tables.forEach(t => { t.x = tg[t.id].x; t.y = tg[t.id].y; }); }
+  else if (unplaced.length) {
+    const mx = Math.max(...tables.filter(t => t.x != null).map(t => t.x + W)) + 80; let y = 40;
+    unplaced.forEach(t => { t.x = mx; t.y = y; y += cardH(t) + 40; });
+  }
+  const objs = {
+    views: master.filter(m => m.type === 'view').map(m => ({ name: m.name, sql: m.sql })),
+    triggers: master.filter(m => m.type === 'trigger').map(m => ({ name: m.name, table: m.tbl_name, sql: m.sql })),
+    virtual: virt,
+  };
+  return { tables, objs };
+}
+
+function fmtDef(d) {
+  if (d == null || d === '') return null;
+  if (/^(CURRENT_TIMESTAMP|CURRENT_DATE|CURRENT_TIME|NULL|TRUE|FALSE)$/i.test(d) || /^[-+]?\d+(\.\d+)?$/.test(d) || /^'.*'$/s.test(d) || /^\(.*\)$/s.test(d) || /^x'[0-9a-f]*'$/i.test(d)) return d;
+  return "'" + d.replace(/'/g, "''") + "'";
+}
+function colLine(c, byId, singlePk) {
+  let s = qi(c.name) + (c.type ? ' ' + c.type : '');
+  if (c.pk && singlePk) s += ' PRIMARY KEY' + (c.autoinc ? ' AUTOINCREMENT' : '');
+  if (c.nn && !(c.pk && singlePk && /^INTEGER$/i.test(c.type))) s += ' NOT NULL';
+  if (c.uq) s += ' UNIQUE';
+  const d = fmtDef(c.def); if (d) s += ' DEFAULT ' + d;
+  if (c.fk && byId[c.fk.t]) {
+    const tt = byId[c.fk.t], cc = tt.cols.find(x => x.id === c.fk.c);
+    if (cc) { s += ' REFERENCES ' + qi(tt.name) + ' (' + qi(cc.name) + ')'; if (c.fk.onDelete && c.fk.onDelete !== 'NO ACTION') s += ' ON DELETE ' + c.fk.onDelete; }
+  }
+  return s;
+}
+function ddl(t, byId, nameOverride) {
+  const pks = t.cols.filter(c => c.pk), single = pks.length === 1;
+  const lines = t.cols.map(c => '  ' + colLine(c, byId, single));
+  if (pks.length > 1) lines.push('  PRIMARY KEY (' + pks.map(c => qi(c.name)).join(', ') + ')');
+  const opts = [t.strict && 'STRICT', t.withoutRowid && 'WITHOUT ROWID'].filter(Boolean).join(', ');
+  return 'CREATE TABLE ' + qi(nameOverride || t.name) + ' (\n' + lines.join(',\n') + '\n)' + (opts ? ' ' + opts : '') + ';';
+}
+function idxSql(ix, t) {
+  if (ix.raw && ix.rawTable === t.name) return ix.raw + ';';
+  const cols = ix.cols.map(id => (t.cols.find(c => c.id === id) || {}).name).filter(Boolean);
+  if (!cols.length) return '-- index ' + ix.name + ' could not be regenerated';
+  return 'CREATE ' + (ix.unique ? 'UNIQUE ' : '') + 'INDEX ' + qi(ix.name) + ' ON ' + qi(t.name) + ' (' + cols.map(qi).join(', ') + ');';
+}
+function rebuildSql(b, t, byId, renamed) {
+  const common = t.cols.filter(c => b.cols.some(o => o.id === c.id));
+  const tmp = '_new_' + t.name;
+  const out = ['PRAGMA foreign_keys = OFF;', 'BEGIN;'];
+  if (renamed) out.push('ALTER TABLE ' + qi(b.name) + ' RENAME TO ' + qi(t.name) + ';');
+  const src = renamed ? t.name : b.name;
+  out.push(ddl(t, byId, tmp),
+    'INSERT INTO ' + qi(tmp) + ' (' + common.map(c => qi(c.name)).join(', ') + ')',
+    '  SELECT ' + common.map(c => qi(b.cols.find(o => o.id === c.id).name)).join(', ') + ' FROM ' + qi(src) + ';',
+    'DROP TABLE ' + qi(src) + ';', 'PRAGMA legacy_alter_table = ON;', 'ALTER TABLE ' + qi(tmp) + ' RENAME TO ' + qi(t.name) + ';', 'PRAGMA legacy_alter_table = OFF;',
+    ...t.indexes.map(ix => idxSql(ix, t)));
+  (t.triggers || []).forEach(tr => out.push(renamed ? '-- trigger on renamed table needs recreating by hand' : tr + ';'));
+  out.push('PRAGMA foreign_key_check;', 'COMMIT;', 'PRAGMA foreign_keys = ON;');
+  return out.join('\n');
+}
+function diff(base, cur) {
+  const bB = Object.fromEntries(base.map(t => [t.id, t])), bC = Object.fromEntries(cur.map(t => [t.id, t]));
+  const ops = [];
+  for (const b of base) if (!bC[b.id]) ops.push({ tid: b.id, kind: 'DROP', title: 'Drop table ' + b.name, sql: 'DROP TABLE IF EXISTS ' + qi(b.name) + ';' });
+  for (const t of cur) {
+    const b = bB[t.id];
+    if (!b) { ops.push({ tid: t.id, kind: 'CREATE', title: 'Create table ' + t.name, sql: [ddl(t, bC), ...t.indexes.map(ix => idxSql(ix, t))].join('\n') }); continue; }
+    const reasons = [], simple = [], renamed = b.name !== t.name;
+    if (renamed) simple.push({ kind: 'RENAME', title: 'Rename ' + b.name + ' → ' + t.name, sql: 'ALTER TABLE ' + qi(b.name) + ' RENAME TO ' + qi(t.name) + ';' });
+    if (b.strict !== t.strict) reasons.push((t.strict ? 'enable' : 'disable') + ' STRICT');
+    if (b.withoutRowid !== t.withoutRowid) reasons.push((t.withoutRowid ? 'enable' : 'disable') + ' WITHOUT ROWID');
+    const bc = Object.fromEntries(b.cols.map(c => [c.id, c]));
+    const bIdxCols = new Set(b.indexes.flatMap(i => i.cols));
+    const single = t.cols.filter(c => c.pk).length === 1;
+    for (const c of t.cols) {
+      const o = bc[c.id];
+      if (!o) {
+        if (c.pk) reasons.push('add PRIMARY KEY column ' + c.name);
+        else if (c.uq) reasons.push('add UNIQUE column ' + c.name);
+        else if (c.nn && !fmtDef(c.def)) reasons.push('add NOT NULL column ' + c.name + ' without a default');
+        else if (/^CURRENT_|^\(/i.test(c.def || '')) reasons.push('add ' + c.name + ' with a non-constant default');
+        else simple.push({ kind: 'ALTER', title: 'Add column ' + t.name + '.' + c.name, sql: 'ALTER TABLE ' + qi(t.name) + ' ADD COLUMN ' + colLine(c, bC, single) + ';' });
+        continue;
+      }
+      if (o.name !== c.name) simple.push({ kind: 'ALTER', title: 'Rename column ' + o.name + ' → ' + c.name, sql: 'ALTER TABLE ' + qi(t.name) + ' RENAME COLUMN ' + qi(o.name) + ' TO ' + qi(c.name) + ';' });
+      const ch = [];
+      if (o.type !== c.type) ch.push((o.type || 'none') + ' → ' + (c.type || 'none'));
+      if (o.pk !== c.pk) ch.push(c.pk ? '+PRIMARY KEY' : '−PRIMARY KEY');
+      if (o.nn !== c.nn) ch.push(c.nn ? '+NOT NULL' : '−NOT NULL');
+      if (o.uq !== c.uq) ch.push(c.uq ? '+UNIQUE' : '−UNIQUE');
+      if ((o.def || '') !== (c.def || '')) ch.push('DEFAULT');
+      if (JSON.stringify(o.fk) !== JSON.stringify(c.fk)) ch.push(c.fk ? (o.fk ? 'REFERENCES changed' : '+REFERENCES') : '−REFERENCES');
+      if (ch.length) reasons.push(c.name + ' ' + ch.join(', '));
+    }
+    for (const o of b.cols) if (!t.cols.some(c => c.id === o.id)) {
+      if (o.pk || o.uq || o.fk || bIdxCols.has(o.id)) reasons.push('drop constrained column ' + o.name);
+      else simple.push({ kind: 'ALTER', title: 'Drop column ' + t.name + '.' + o.name, sql: 'ALTER TABLE ' + qi(t.name) + ' DROP COLUMN ' + qi(o.name) + ';' });
+    }
+    if (reasons.length) {
+      const note = reasons.join(' · ') + (t.lossy && t.lossy.length ? ' · drops ' + t.lossy.join(', ') : '');
+      ops.push({ tid: t.id, kind: 'REBUILD', title: 'Rebuild ' + t.name, note, sql: rebuildSql(b, t, bC, renamed) }); continue;
+    }
+    simple.forEach(o => ops.push({ tid: t.id, ...o }));
+    for (const ix of t.indexes) if (!b.indexes.some(i => i.id === ix.id)) ops.push({ tid: t.id, kind: 'INDEX', title: 'Create index ' + ix.name, sql: idxSql(ix, t) });
+    for (const ix of b.indexes) if (!t.indexes.some(i => i.id === ix.id)) ops.push({ tid: t.id, kind: 'INDEX', title: 'Drop index ' + ix.name, sql: 'DROP INDEX IF EXISTS ' + qi(ix.name) + ';' });
+  }
+  return ops;
+}
+function toks(line) {
+  const out = [], re = /(--.*$)|('[^']*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_]\w*)|(\s+)|([^\w\s])/g;
+  let m;
+  while ((m = re.exec(line))) {
+    let c = '#d8d8e2';
+    if (m[1]) c = '#6e6e7e'; else if (m[2]) c = '#e8b64c'; else if (m[3]) c = '#f0a27a';
+    else if (m[4]) { const u = m[4].toUpperCase(); if (TYPES.includes(u)) c = '#62c6d6'; else if (KW.has(u)) c = '#a996ff'; }
+    else if (m[6]) c = '#7a7a8a';
+    out.push({ t: m[0], c });
+  }
+  return out;
+}
+function codeLines(sql) { return sql.split('\n').map((l, i) => ({ n: i + 1, toks: toks(l) })); }
+function cell(v, c, w) {
+  const base = { w, pad: 10, editing: false, show: true };
+  if (v === null || v === undefined) return { ...base, v: 'NULL', color: '#55556a', fs: 'italic', align: 'flex-start' };
+  if (v instanceof Uint8Array) return { ...base, v: '‹blob ' + fmtBytes(v.length) + '›', color: '#8e8e9e', fs: 'italic', align: 'flex-start' };
+  const num = typeof v === 'number';
+  const color = c && c.pk ? '#e8c67c' : c && c.fk ? '#7fd3e0' : num ? '#e7e7ee' : '#c8c8d4';
+  return { ...base, v: String(v), color, fs: 'normal', align: num ? 'flex-end' : 'flex-start' };
+}
+function widths(names, rs) {
+  return names.map((n, i) => { let m = n.length + 6; rs.slice(0, 200).forEach(r => { const v = r[i]; m = Math.max(m, v == null ? 4 : v instanceof Uint8Array ? 12 : String(v).length); }); return clamp(Math.round(m * 7.1 + 22), 76, 320); });
+}
+function whereFor(key) {
+  if (key.rowid != null) return ['rowid = ?', [key.rowid]];
+  return [key.pk.map(([n]) => qi(n) + ' IS ?').join(' AND '), key.pk.map(p => p[1])];
+}
+
+class Component extends DCLogic {
+  state = (() => { const t = []; return {
+    tables: t, baseline: clone(t), objs: { views: [], triggers: [], virtual: [] }, sel: null, selCol: null, openCol: null,
+    zoom: 1, pan: { x: 30, y: 20 }, cw: 900, ch: 500,
+    tab: 'data', bottomOpen: typeof window === 'undefined' || window.innerHeight >= 720, hover: null, search: '', collapsed: {}, panning: false,
+    sql: "SELECT id, title, status, priority\nFROM tasks\nWHERE status != 'done'\nORDER BY priority\nLIMIT 20;", sqlRes: null,
+    history: [], future: [], toast: null, ddlScope: 'table', fkOn: true, integrityMsg: null, integrityOk: true,
+    engine: 'loading', engineErr: null, fileName: 'No database', isSample: false, hasHandle: true, diskDirty: false,
+    info: { version: '—', pageSize: 0, pageCount: 0, userVersion: 0, encoding: 'UTF-8', schemaVersion: null }, dbMeta: null,
+    dataVer: 0, edit: null, selRow: null, applyError: null, menu: null, showHelp: false, dragging: false,
+  }; })();
+  canvasRef = React.createRef();
+  fileRef = React.createRef();
+
+  componentDidMount() {
+    this._mm = e => this.onMove(e); this._mu = () => this.onUp(); this._kd = e => this.onKey(e);
+    window.addEventListener('mousemove', this._mm); window.addEventListener('mouseup', this._mu); window.addEventListener('keydown', this._kd);
+    this.attachCanvas();
+    this._t2 = setTimeout(() => this.syncSelects(), 50);
+    this.boot();
+  }
+  componentDidUpdate() { this.syncSelects(); }
+  syncSelects() { document.querySelectorAll('select[data-val]').forEach(el => { if (el.value !== el.dataset.val) el.value = el.dataset.val; }); }
+  componentWillUnmount() {
+    window.removeEventListener('mousemove', this._mm); window.removeEventListener('mouseup', this._mu); window.removeEventListener('keydown', this._kd); if (this._bye) window.removeEventListener('beforeunload', this._bye);
+    const el = this.canvasRef.current; if (el && this._wheel) el.removeEventListener('wheel', this._wheel);
+    if (this._ro) this._ro.disconnect(); clearInterval(this._poll); clearTimeout(this._t); clearTimeout(this._t2); clearTimeout(this._tt); clearTimeout(this._pt); cancelAnimationFrame(this._raf); cancelAnimationFrame(this._vraf);
+  }
+  attachCanvas() {
+    const el = this.canvasRef.current;
+    if (!el) { this._t = setTimeout(() => this.attachCanvas(), 100); return; }
+    this._wheel = e => this.onWheel(e); el.addEventListener('wheel', this._wheel, { passive: false });
+    this._ro = new ResizeObserver(() => {
+      const r = el.getBoundingClientRect(); if (!r.width) return;
+      this.setState({ cw: r.width, ch: r.height });
+      if (!this._fitted) { this._fitted = true; this.fitInitial(r.width, r.height); }
+    });
+    this._ro.observe(el);
+  }
+  fitInitial(cw = this.state.cw, ch = this.state.ch, ts = this.state.tables, selId = this.state.sel) {
+    if (!ts.length) { this.setState({ zoom: 1, pan: { x: 40, y: 40 } }); return; }
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    ts.forEach(t => { x0 = Math.min(x0, t.x); y0 = Math.min(y0, t.y); x1 = Math.max(x1, t.x + W); y1 = Math.max(y1, t.y + cardH(t)); });
+    const fz = Math.min((cw - 80) / (x1 - x0), (ch - 40) / (y1 - y0));
+    const t = ts.find(x => x.id === selId);
+    if (fz < 0.6 && t) { const z = 0.8; this.setState({ zoom: z, pan: { x: cw / 2 - (t.x + W / 2) * z, y: ch / 2 - (t.y + cardH(t) / 2) * z } }); }
+    else this.fit(false, cw, ch, ts);
+  }
+
+  async boot() {
+    try {
+      const state = await api('state');
+      this.adopt(state, true);
+      this.setState({ engine: 'ready' });
+    } catch (e) { this.setState({ engine: 'error', engineErr: e.message }); }
+    window.addEventListener('beforeunload', this._bye = () => navigator.sendBeacon('/api/bye?t=' + encodeURIComponent(API_TOKEN)));
+    this._poll = setInterval(async () => {
+      try {
+        const p = await api('poll');
+        if (!this.state.dbMeta) return;
+        if (p.schemaVersion !== this.state.info.schemaVersion) await this.refreshSchema('Schema changed on disk · reloaded');
+        else if (p.dataVersion !== this.state.dbMeta.dataVersion) await this.touch();
+      } catch (_) {}
+    }, 45000);
+  }
+  adopt(payload, quiet) {
+    const tables = tableModels(payload.schema, payload.layout, this.state.tables);
+    const db = payload.db;
+    const sel = tables.some(t => t.id === this.state.sel) ? this.state.sel : (tables.find(t => t.name === 'tasks') || tables[0] || {}).id || null;
+    this._dc = null;
+    this.setState(s => ({
+      tables, baseline: clone(tables), objs: payload.schema ? { views: payload.schema.views || [], triggers: payload.schema.triggers || [], virtual: (payload.schema.tables || []).filter(t => t.kind === 'virtual').map(t => t.name) } : { views: [], triggers: [], virtual: [] },
+      fileName: db ? db.name : 'No database', dbMeta: db || null, info: dbInfo(db), fkOn: db ? !!db.fk : true,
+      sel, selCol: null, openCol: null, sqlRes: null, applyError: null, edit: null, selRow: null,
+      history: [], future: [], dataVer: s.dataVer + 1, diskDirty: false,
+      sql: db && tables[0] ? 'SELECT *\nFROM ' + qi(tables[0].name) + '\nLIMIT 50;' : 'SELECT sqlite_version();',
+    }), () => { if (tables.length) this.fitInitial(this.state.cw, this.state.ch, tables, sel); });
+    if (!quiet && db) this.toast('Opened ' + db.display);
+  }
+  async refreshSchema(msg) {
+    const data = await api('schema'); this.adopt(data, true); if (msg) this.toast(msg);
+  }
+  async openPath(path, create = false) {
+    if (!path) return;
+    try { const data = await api('open', { path, create }); this.adopt(data, false); }
+    catch (e) { this.toast('Could not open database: ' + e.message); }
+  }
+  async openFile() {
+    try {
+      const d = await api('dialog', { mode: 'open' });
+      const path = d.path || (d.unsupported ? window.prompt('Path to SQLite database') : null);
+      if (path) await this.openPath(path, false);
+    } catch (e) { this.toast(e.message); }
+  }
+  async newDb() {
+    try {
+      const d = await api('dialog', { mode: 'new' });
+      const path = d.path || (d.unsupported ? window.prompt('Path for the new SQLite database', (d.home || '') + '/untitled.db') : null);
+      if (path) await this.openPath(path, true);
+    } catch (e) { this.toast(e.message); }
+  }
+  async onFilePicked() { this.toast('Use Open to choose a filesystem path'); }
+  async onDrop(e) { e.preventDefault(); this.setState({ dragging: false }); this.toast('Use Open so Tabula can work on the real file'); }
+  save() { this.toast('Changes are already written to ' + this.state.fileName); }
+  saveAs() { this.toast('Use File → New database, then copy with the SQL console'); }
+  download(data, name, type = 'text/plain') {
+    const url = URL.createObjectURL(new Blob([data], { type }));
+    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 3000);
+  }
+  schemaText() {
+    const ts = this.state.tables, byId = Object.fromEntries(ts.map(t => [t.id, t])), o = this.state.objs;
+    return '-- ' + this.state.fileName + ' · generated by Tabula\nPRAGMA foreign_keys = ON;\n\n' + ts.map(t => [ddl(t, byId), ...t.indexes.map(ix => idxSql(ix, t))].join('\n')).join('\n\n')
+      + (o.views.length ? '\n\n' + o.views.map(v => v.sql + ';').join('\n') : '') + (o.triggers.length ? '\n\n' + o.triggers.map(t => t.sql + ';').join('\n') : '');
+  }
+  exportSchema() { this.download(this.schemaText() + '\n', this.state.fileName.replace(/\.\w+$/, '') + '.schema.sql'); }
+  exportMigration() {
+    if (!diff(this.state.baseline, this.state.tables).length) { this.toast('No pending changes'); return; }
+    this.download(this.migrationText(), this.state.fileName.replace(/\.\w+$/, '') + '.migration-' + ((this.state.info.userVersion || 0) + 1) + '.sql');
+  }
+  reload(msg) { this.refreshSchema(msg).catch(e => this.toast(e.message)); }
+  async touch() {
+    this._dc = null;
+    try {
+      const x = await api('counts');
+      this.setState(s => ({ dataVer: s.dataVer + 1, info: dbInfo(x.db), dbMeta: x.db,
+        tables: s.tables.map(t => ({ ...t, count: x.counts[t.name] == null ? t.count : x.counts[t.name] })),
+        baseline: s.baseline.map(t => ({ ...t, count: x.counts[t.name] == null ? t.count : x.counts[t.name] })) }));
+    } catch (e) { this.toast(e.message); }
+  }
+  savePos(ts = this.state.tables) {
+    clearTimeout(this._layoutTimer);
+    const tables = Object.fromEntries(ts.map(t => [t.name, [Math.round(t.x), Math.round(t.y)]]));
+    this._layoutTimer = setTimeout(() => api('layout', { tables }).catch(() => {}), 250);
+  }
+  persistSoon() {}
+  persist() {}
+  restoreFk() {}
+
+  mutate(fn, key) {
+    const now = Date.now(), co = key && this._lk === key && now - this._lt < 1000;
+    this._lk = key; this._lt = now;
+    this.setState(s => { const next = clone(s.tables); fn(next); return { tables: next, history: co ? s.history : [...s.history.slice(-80), s.tables], future: [], applyError: null }; });
+  }
+  updCol(tid, cid, patch, key) { this.mutate(ts => { const t = ts.find(x => x.id === tid), c = t && t.cols.find(x => x.id === cid); if (c) Object.assign(c, patch); }, key); }
+  updTable(tid, patch, key) { this.mutate(ts => { const t = ts.find(x => x.id === tid); if (t) Object.assign(t, patch); }, key); }
+  undo() { this._lk = null; this.setState(s => s.history.length ? { tables: s.history[s.history.length - 1], history: s.history.slice(0, -1), future: [s.tables, ...s.future] } : null); }
+  redo() { this._lk = null; this.setState(s => s.future.length ? { tables: s.future[0], future: s.future.slice(1), history: [...s.history, s.tables] } : null); }
+  toast(msg) { clearTimeout(this._tt); this.setState({ toast: msg }); this._tt = setTimeout(() => this.setState({ toast: null }), 3200); }
+
+  cardDown(e, id) {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    const t = this.state.tables.find(x => x.id === id), col = this._pendingCol; this._pendingCol = null;
+    this.drag = { type: 'card', id, sx: e.clientX, sy: e.clientY, ox: t.x, oy: t.y, moved: false };
+    this.setState(s => ({ sel: id, selCol: col || null, openCol: col || (s.sel === id ? s.openCol : null), selRow: s.sel === id ? s.selRow : null, edit: null }));
+  }
+  canvasDown(e) {
+    if (e.button !== 0 && e.button !== 1) return;
+    this.drag = { type: 'pan', sx: e.clientX, sy: e.clientY, ox: this.state.pan.x, oy: this.state.pan.y, moved: false };
+    this.setState({ panning: true });
+  }
+  onMove(e) {
+    const d = this.drag; if (!d) return;
+    const dx = e.clientX - d.sx, dy = e.clientY - d.sy;
+    if (!d.moved && Math.hypot(dx, dy) < 3) return;
+    if (d.type === 'card') {
+      if (!d.moved) { d.moved = true; this.setState(s => ({ history: [...s.history.slice(-80), s.tables], future: [] })); }
+      const z = this.state.zoom, x = Math.round((d.ox + dx / z) / 8) * 8, y = Math.round((d.oy + dy / z) / 8) * 8;
+      this.setState(s => ({ tables: s.tables.map(t => t.id === d.id ? { ...t, x, y } : t) }));
+    } else { d.moved = true; this.setState({ pan: { x: d.ox + dx, y: d.oy + dy } }); }
+  }
+  onUp() {
+    const d = this.drag; this.drag = null; if (!d) return;
+    if (d.type === 'card' && d.moved) this.savePos();
+    if (d.type === 'pan') this.setState(d.moved ? { panning: false } : { panning: false, sel: null, selCol: null, openCol: null, selRow: null, edit: null });
+  }
+  onWheel(e) {
+    e.preventDefault();
+    const r = this.canvasRef.current.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+    if (e.ctrlKey || e.metaKey) {
+      const z = this.state.zoom, nz = clamp(z * Math.exp(-e.deltaY * 0.002), 0.25, 2), p = this.state.pan;
+      this.setState({ zoom: nz, pan: { x: mx - (mx - p.x) * (nz / z), y: my - (my - p.y) * (nz / z) } });
+    } else this.setState(s => ({ pan: { x: s.pan.x - (e.shiftKey ? e.deltaY : e.deltaX), y: s.pan.y - (e.shiftKey ? 0 : e.deltaY) } }));
+  }
+  onKey(e) {
+    const tag = (e.target.tagName || '').toLowerCase(), typing = tag === 'input' || tag === 'textarea' || tag === 'select';
+    const mod = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
+    if (e.key === 'Escape') { this.setState({ menu: null, showHelp: false }); if (!typing) this.setState({ sel: null, selCol: null, openCol: null, selRow: null }); return; }
+    if (mod && e.key === 'Enter' && this.state.tab === 'sql') { e.preventDefault(); this.runSql(); return; }
+    if (mod && k === 's') { e.preventDefault(); e.shiftKey ? this.saveAs() : this.save(); return; }
+    if (mod && k === 'o') { e.preventDefault(); this.openFile(); return; }
+    if (mod && k === 'j') { e.preventDefault(); this.setState(s => ({ bottomOpen: !s.bottomOpen })); return; }
+    if (typing) return;
+    if (mod && k === 'z') { e.preventDefault(); e.shiftKey ? this.redo() : this.undo(); return; }
+    if (mod && k === 'y') { e.preventDefault(); this.redo(); return; }
+    if (mod || e.altKey) return;
+    if (e.key === 'Delete') { if (this.state.selRow != null && this.state.tab === 'data') this.deleteRow(); else if (this.state.sel) this.dropTable(this.state.sel); }
+    else if (k === 't') this.addTable();
+    else if (k === 'l') this.autoLayout();
+    else if (k === 'f') this.fit(true);
+    else if (e.key === '?') this.setState({ showHelp: true });
+    else if (e.key === '+' || e.key === '=') this.zoomBy(1.2);
+    else if (e.key === '-') this.zoomBy(1 / 1.2);
+  }
+
+  animView(z, pan, animate) {
+    cancelAnimationFrame(this._vraf);
+    if (!animate) { this.setState({ zoom: z, pan }); return; }
+    const z0 = this.state.zoom, p0 = this.state.pan, t0 = performance.now(), D = 380;
+    const step = now => {
+      const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3);
+      this.setState({ zoom: z0 + (z - z0) * e, pan: { x: p0.x + (pan.x - p0.x) * e, y: p0.y + (pan.y - p0.y) * e } });
+      if (k < 1) this._vraf = requestAnimationFrame(step);
+    };
+    this._vraf = requestAnimationFrame(step);
+  }
+  fit(animate, cw = this.state.cw, ch = this.state.ch, list = this.state.tables) {
+    if (!list.length) return;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    list.forEach(t => { x0 = Math.min(x0, t.x); y0 = Math.min(y0, t.y); x1 = Math.max(x1, t.x + W); y1 = Math.max(y1, t.y + cardH(t)); });
+    const z = clamp(Math.min((cw - 80) / (x1 - x0), (ch - (ch < 360 ? 40 : 110)) / (y1 - y0)), 0.3, 1.15);
+    this.animView(z, { x: cw / 2 - (x0 + x1) / 2 * z, y: ch / 2 - (y0 + y1) / 2 * z + 12 }, animate);
+  }
+  centerOn(id) {
+    const t = this.state.tables.find(x => x.id === id); if (!t) return;
+    const { zoom: z, cw, ch } = this.state;
+    this.animView(z, { x: cw / 2 - (t.x + W / 2) * z, y: ch / 2 - (t.y + cardH(t) / 2) * z }, true);
+  }
+  zoomBy(f) {
+    const { zoom: z, pan: p, cw, ch } = this.state, nz = clamp(z * f, 0.25, 2), mx = cw / 2, my = ch / 2;
+    this.animView(nz, { x: mx - (mx - p.x) * (nz / z), y: my - (my - p.y) * (nz / z) }, true);
+  }
+  selectTable(id) { this.setState({ sel: id, selCol: null, openCol: null, selRow: null, edit: null }); this.centerOn(id); }
+
+  addTable() {
+    const ts = this.state.tables; let n = 'new_table', i = 2;
+    while (ts.some(t => t.name === n)) n = 'new_table_' + i++;
+    const { cw, ch, pan, zoom } = this.state, id = uid('t_');
+    const x = Math.round(((cw / 2 - pan.x) / zoom - W / 2) / 8) * 8, y = Math.round(((ch / 2 - pan.y) / zoom - 50) / 8) * 8;
+    this.mutate(list => list.push({ id, name: n, x, y, count: 0, strict: true, withoutRowid: false, indexes: [], triggers: [], lossy: [], cols: [{ id: uid('c_'), name: 'id', type: 'INTEGER', pk: true, nn: false, uq: false, def: null, autoinc: false, fk: null }] }));
+    this.setState({ sel: id, selCol: null, openCol: null, selRow: null });
+  }
+  dropTable(id) {
+    const t = this.state.tables.find(x => x.id === id); if (!t) return;
+    this.mutate(list => { const i = list.findIndex(x => x.id === id); list.splice(i, 1); list.forEach(o => o.cols.forEach(c => { if (c.fk && c.fk.t === id) c.fk = null; })); });
+    this.setState({ sel: null, selCol: null, openCol: null, selRow: null });
+    this.toast('Drop of ' + t.name + ' is pending · Ctrl+Z to undo');
+  }
+  addColumn(tid) {
+    const t = this.state.tables.find(x => x.id === tid); if (!t) return;
+    let n = 'column', i = 2; while (t.cols.some(c => c.name === n)) n = 'column_' + i++;
+    const id = uid('c_');
+    this.mutate(list => list.find(x => x.id === tid).cols.push({ id, name: n, type: 'TEXT', pk: false, nn: false, uq: false, def: null, autoinc: false, fk: null }));
+    this.setState({ selCol: id, openCol: id });
+  }
+  removeColumn(tid, cid) {
+    this.mutate(list => {
+      const t = list.find(x => x.id === tid); t.cols = t.cols.filter(c => c.id !== cid);
+      t.indexes = t.indexes.map(ix => ({ ...ix, cols: ix.cols.filter(c => c !== cid) })).filter(ix => ix.cols.length || ix.raw);
+      list.forEach(o => o.cols.forEach(c => { if (c.fk && c.fk.c === cid) c.fk = null; }));
+    });
+    this.setState({ selCol: null, openCol: null });
+  }
+  toggleIndex(tid, cid) {
+    this.mutate(list => {
+      const t = list.find(x => x.id === tid), c = t.cols.find(x => x.id === cid);
+      const i = t.indexes.findIndex(ix => ix.cols.length === 1 && ix.cols[0] === cid);
+      if (i >= 0) t.indexes.splice(i, 1); else t.indexes.push({ id: uid('i_'), name: 'idx_' + t.name + '_' + c.name, unique: false, cols: [cid] });
+    });
+  }
+  autoLayout() {
+    const ts = this.state.tables; if (!ts.length) return;
+    const target = layoutTargets(ts);
+    this.setState(s => ({ history: [...s.history.slice(-80), s.tables], future: [] }));
+    const from = Object.fromEntries(ts.map(t => [t.id, { x: t.x, y: t.y }])), t0 = performance.now(), D = 520;
+    const final = ts.map(t => ({ ...t, ...target[t.id] }));
+    cancelAnimationFrame(this._raf);
+    const step = now => {
+      const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3);
+      this.setState(s => ({ tables: s.tables.map(t => target[t.id] && from[t.id] ? { ...t, x: from[t.id].x + (target[t.id].x - from[t.id].x) * e, y: from[t.id].y + (target[t.id].y - from[t.id].y) * e } : t) }));
+      if (k < 1) this._raf = requestAnimationFrame(step); else this.savePos(final);
+    };
+    this._raf = requestAnimationFrame(step);
+    this.fit(true, undefined, undefined, final);
+  }
+
+  async apply() {
+    const ops = diff(this.state.baseline, this.state.tables); if (!ops.length || !this.state.dbMeta) return;
+    const wrapper = /^(PRAGMA foreign_keys = (ON|OFF);|BEGIN;|COMMIT;|PRAGMA foreign_key_check;)$/i;
+    const sent = ops.map(o => ({ ...o,
+      table: ((this.state.baseline.find(t => t.id === o.tid) || this.state.tables.find(t => t.id === o.tid)) || {}).name,
+      sql: o.sql.split('\n').filter(line => !wrapper.test(line.trim())).join('\n'),
+    }));
+    try {
+      const r = await api('apply', { ops: sent, baseSchemaVersion: this.state.info.schemaVersion, dryRun: false });
+      this.adopt(r, true); this.toast('Applied ' + r.statements + ' statement' + (r.statements === 1 ? '' : 's') + ' · user_version ' + r.db.userVersion);
+    } catch (e) {
+      this.setState({ applyError: e.message, tab: 'changes', bottomOpen: true }); this.toast('Migration failed · rolled back');
+    }
+  }
+  discard() {
+    const ops = diff(this.state.baseline, this.state.tables); if (!ops.length) return;
+    this.mutate(list => { const pos = Object.fromEntries(list.map(t => [t.id, t])); list.length = 0; clone(this.state.baseline).forEach(t => { if (pos[t.id]) { t.x = pos[t.id].x; t.y = pos[t.id].y; } list.push(t); }); });
+    this.toast('Discarded ' + ops.length + ' pending change' + (ops.length === 1 ? '' : 's'));
+  }
+  migrationText() {
+    const ops = diff(this.state.baseline, this.state.tables), uv = this.state.info.userVersion || 0;
+    return '-- ' + this.state.fileName + ' migration ' + uv + ' → ' + (uv + 1) + '\n' + ops.map(o => '-- ' + o.title + '\n' + o.sql).join('\n\n') + '\n\nPRAGMA user_version = ' + (uv + 1) + ';\n';
+  }
+  copy(txt, msg) { try { navigator.clipboard.writeText(txt).catch(() => {}); } catch (e) {} this.toast(msg); }
+
+  async runSql() {
+    if (!this.state.dbMeta) { this.toast('Open a database first'); return; }
+    try {
+      const r = await api('sql', { sql: this.state.sql });
+      const out = r.result ? { cols: r.result.cols, rows: r.result.rows, total: r.result.rows.length, truncated: r.result.truncated, ms: r.ms }
+        : { msg: 'OK · ' + r.changes + ' row' + (r.changes === 1 ? '' : 's') + ' changed · ' + r.ms + ' ms' };
+      this.setState({ sqlRes: out, info: dbInfo(r.db), dbMeta: r.db, fkOn: !!r.db.fk });
+      if (r.schemaChanged) await this.refreshSchema('Schema changed · model reloaded');
+      else if (r.changes) await this.touch();
+    } catch (e) { this.setState({ sqlRes: { error: e.message + (e.statement ? ' (statement ' + e.statement + ' of ' + e.of + ')' : '') } }); }
+  }
+
+  getData(t) {
+    const base = this.state.baseline.find(b => b.id === t.id);
+    if (!base) return { msg: t.name + ' is not in the database yet. Apply changes to create it.' };
+    const key = base.name + '|' + this.state.dataVer;
+    if (this._dc && this._dc.key === key) return this._dc.val;
+    if (!this._dataRequest || this._dataRequest !== key) {
+      this._dataRequest = key;
+      api('rows', { table: base.name, offset: 0, limit: PAGE }).then(r => {
+        if (this._dataRequest !== key) return;
+        this._dc = { key, val: { cols: r.cols, rows: r.rows, keys: r.keys, base, count: base.count, more: r.more } }; this.forceUpdate();
+      }).catch(e => { if (this._dataRequest === key) { this._dc = { key, val: { msg: e.message } }; this.forceUpdate(); } });
+    }
+    return { msg: 'Loading rows…' };
+  }
+  async commitEdit() {
+    const ed = this.state.edit; if (!ed) return;
+    this.setState({ edit: null });
+    const d = this._dc && this._dc.val; if (!d || !d.rows || !d.rows[ed.r]) return;
+    const col = d.cols[ed.k], old = d.rows[ed.r][ed.k], bc = d.base.cols.find(c => c.name === col);
+    let v = ed.v;
+    if (/^null$/i.test(v.trim())) v = null;
+    else if (bc && /INT|REAL|FLOA|DOUB|NUM|DEC/i.test(bc.type) && /^\s*[-+]?\d+(\.\d+)?(e[-+]?\d+)?\s*$/i.test(v)) v = Number(v);
+    if (v === old || (old != null && typeof old !== 'number' && String(old) === v)) return;
+    try { await api('cell', { table: d.base.name, column: col, key: d.keys[ed.r], value: v }); await this.touch(); this.toast('Updated ' + d.base.name + '.' + col); }
+    catch (e) { this.toast('Error: ' + e.message); }
+  }
+  async addRow() {
+    const t = this.state.baseline.find(b => b.id === this.state.sel); if (!t) return;
+    try { await api('row', { table: t.name }); await this.touch(); this.toast('Inserted a row into ' + t.name); }
+    catch (e) { this.toast('Error: ' + e.message + ' · use the SQL console to insert with values'); }
+  }
+  async deleteRow() {
+    const d = this._dc && this._dc.val, i = this.state.selRow; if (!d || !d.keys || i == null || !d.keys[i]) return;
+    try { await api('delete', { table: d.base.name, key: d.keys[i] }); this.setState({ selRow: null }); await this.touch(); this.toast('Deleted row ' + (i + 1) + ' from ' + d.base.name); }
+    catch (e) { this.toast('Error: ' + e.message); }
+  }
+  async integrity() {
+    try { const r = await api('integrity', {}); this.setState({ integrityOk: r.ok, integrityMsg: 'integrity_check: ' + r.messages.join('\n') }); }
+    catch (e) { this.setState({ integrityOk: false, integrityMsg: e.message }); }
+  }
+  async vacuum() {
+    try { const r = await api('vacuum', {}); this.setState({ info: dbInfo(r.db), dbMeta: r.db }); this.toast('VACUUM complete · ' + fmtBytes(r.before) + ' → ' + fmtBytes(r.after) + ' · ' + r.ms + ' ms'); }
+    catch (e) { this.toast('VACUUM failed: ' + e.message); }
+  }
+  async toggleFk() {
+    try { const r = await api('pragma', { fk: !this.state.fkOn }); this.setState({ fkOn: !!r.db.fk, info: dbInfo(r.db), dbMeta: r.db }); }
+    catch (e) { this.toast(e.message); }
+  }
+
+  renderVals() {
+    const s = this.state, P = this.props;
+    const lineStyle = P.lineStyle ?? 'curved', gridStyle = P.gridStyle ?? 'dots', showTypes = P.showTypes ?? true;
+    const ts = s.tables, byId = Object.fromEntries(ts.map(t => [t.id, t]));
+    const selT = byId[s.sel] || null;
+    const ops = diff(s.baseline, ts), dirty = new Set(ops.map(o => o.tid));
+    const baseIds = new Set(s.baseline.map(t => t.id));
+    const focus = s.hover || s.sel;
+    const neighbors = new Set();
+    if (selT) { selT.cols.forEach(c => c.fk && neighbors.add(c.fk.t)); ts.forEach(t => t.cols.forEach(c => { if (c.fk && c.fk.t === selT.id) neighbors.add(t.id); })); }
+    const selCol = selT && s.selCol ? selT.cols.find(c => c.id === s.selCol) : null;
+    const hiCols = new Set();
+    if (selCol) { hiCols.add(selCol.id); if (selCol.fk) hiCols.add(selCol.fk.c); ts.forEach(t => t.cols.forEach(c => { if (c.fk && c.fk.c === selCol.id) hiCols.add(c.id); })); }
+    const ready = s.engine === 'ready';
+
+    const cards = ts.map(t => {
+      const isSel = t.id === s.sel, isNb = neighbors.has(t.id), isHov = t.id === s.hover;
+      return {
+        id: t.id, x: t.x, y: t.y, name: t.name, countLabel: baseIds.has(t.id) ? fmtN(t.count) : 'new', dirty: dirty.has(t.id),
+        border: isSel ? '#9d85ff' : isHov || isNb ? '#3c3c4a' : '#2a2a34',
+        shadow: isSel ? '0 0 0 3px rgba(157,133,255,.16), 0 14px 36px rgba(0,0,0,.5)' : '0 6px 18px rgba(0,0,0,.35)',
+        headBg: isSel ? 'rgba(157,133,255,.10)' : '#1b1b23', nameColor: isSel ? '#d6ccff' : '#e7e7ee',
+        onDown: e => this.cardDown(e, t.id), onEnter: () => this.setState({ hover: t.id }), onLeave: () => this.setState({ hover: null }),
+        cols: t.cols.map(c => ({
+          name: c.name, type: c.type,
+          badge: c.pk ? 'PK' : c.fk ? 'FK' : c.uq ? 'UQ' : '', badgeColor: c.pk ? '#e8b64c' : c.fk ? '#62c6d6' : '#a996ff',
+          nameColor: c.nn || c.pk ? '#e7e7ee' : '#a8a8b8',
+          bg: c.id === s.selCol ? 'rgba(157,133,255,.18)' : hiCols.has(c.id) ? 'rgba(98,198,214,.10)' : 'transparent',
+          onDown: () => { this._pendingCol = c.id; },
+        })),
+      };
+    });
+
+    const rels = [];
+    ts.forEach(t => t.cols.forEach((c, i) => {
+      if (!c.fk) return; const tt = byId[c.fk.t]; if (!tt) return;
+      const j = tt.cols.findIndex(x => x.id === c.fk.c); if (j < 0) return;
+      const y1 = t.y + 1 + HEAD + i * ROW + ROW / 2, y2 = tt.y + 1 + HEAD + j * ROW + ROW / 2;
+      const sc = t.x + W / 2, tc = tt.x + W / 2;
+      let x1, x2, d1, d2;
+      if (tt.id === t.id || Math.abs(sc - tc) < W * 0.9) { x1 = t.x + W; x2 = tt.x + W; d1 = 1; d2 = 1; }
+      else if (sc < tc) { x1 = t.x + W; d1 = 1; x2 = tt.x; d2 = -1; }
+      else { x1 = t.x; d1 = -1; x2 = tt.x + W; d2 = 1; }
+      const one = c.uq || (c.pk && t.cols.filter(x => x.pk).length === 1);
+      const onCol = selCol && (selCol.id === c.id || selCol.id === c.fk.c);
+      const onFocus = focus && (t.id === focus || tt.id === focus);
+      rels.push({
+        d: relPath(x1, y1, d1, x2, y2, d2, !one, lineStyle),
+        color: onCol ? '#cfc3ff' : onFocus ? '#9d85ff' : s.sel ? '#30303b' : '#474757',
+        w: onCol ? 2.2 : onFocus ? 1.6 : 1.3, dash: c.nn ? 'none' : '5 4', z: onCol ? 2 : onFocus ? 1 : 0,
+      });
+    }));
+    rels.sort((a, b) => a.z - b.z);
+
+    let gridBg = 'none'; const gs = 20 * s.zoom;
+    if (gridStyle === 'dots') gridBg = 'radial-gradient(circle at 1px 1px, #2c2c38 1px, transparent 1.4px)';
+    if (gridStyle === 'lines') gridBg = 'linear-gradient(#18181f 1px, transparent 1px), linear-gradient(90deg, #18181f 1px, transparent 1px)';
+
+    let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+    ts.forEach(t => { bx0 = Math.min(bx0, t.x); by0 = Math.min(by0, t.y); bx1 = Math.max(bx1, t.x + W); by1 = Math.max(by1, t.y + cardH(t)); });
+    if (!ts.length) { bx0 = 0; by0 = 0; bx1 = 800; by1 = 500; }
+    bx0 -= 80; by0 -= 80; bx1 += 80; by1 += 80;
+    const MW = 180, MH = 112, ms = Math.min(MW / (bx1 - bx0), MH / (by1 - by0));
+    const mox = (MW - (bx1 - bx0) * ms) / 2 - bx0 * ms, moy = (MH - (by1 - by0) * ms) / 2 - by0 * ms;
+    this._mini = { mox, moy, ms };
+    const miniItems = ts.map(t => ({ x: mox + t.x * ms, y: moy + t.y * ms, w: W * ms, h: cardH(t) * ms, bg: t.id === s.sel ? '#9d85ff' : '#3a3a48' }));
+    const miniView = { x: mox + (-s.pan.x / s.zoom) * ms, y: moy + (-s.pan.y / s.zoom) * ms, w: s.cw / s.zoom * ms, h: s.ch / s.zoom * ms };
+
+    const q = s.search.trim().toLowerCase(), match = n => !q || n.toLowerCase().includes(q);
+    const allIdx = ts.flatMap(t => t.indexes.map(ix => ({ ix, t })));
+    const mkSec = (key, label, items) => ({ label, count: items.length, open: !s.collapsed[key], chev: s.collapsed[key] ? '▸' : '▾', items, onToggle: () => this.setState(st => ({ collapsed: { ...st.collapsed, [key]: !st.collapsed[key] } })) });
+    const toConsole = (sql, run) => { this.setState({ sql, tab: 'sql', bottomOpen: true }, () => run && this.runSql()); };
+    const sideSections = [
+      mkSec('tables', 'TABLES', ts.filter(t => match(t.name)).map(t => ({ name: t.name, title: t.name, meta: baseIds.has(t.id) ? fmtN(t.count) : 'new', dot: dirty.has(t.id) ? '#e8b64c' : t.id === s.sel ? '#9d85ff' : '#3a3a48', bg: t.id === s.sel ? 'rgba(157,133,255,.14)' : 'transparent', color: t.id === s.sel ? '#e7e7ee' : '#c8c8d4', onClick: () => this.selectTable(t.id) }))),
+      mkSec('views', 'VIEWS', s.objs.views.filter(v => match(v.name)).map(v => ({ name: v.name, title: 'Query ' + v.name, meta: 'view', dot: '#2f4a50', bg: 'transparent', color: '#a8a8b8', onClick: () => toConsole('SELECT *\nFROM ' + qi(v.name) + '\nLIMIT 100;', true) }))),
+      mkSec('indexes', 'INDEXES', allIdx.filter(({ ix }) => match(ix.name)).map(({ ix, t }) => ({ name: ix.name, title: ix.name, meta: t.name, dot: '#2f4a50', bg: 'transparent', color: '#a8a8b8', onClick: () => this.selectTable(t.id) }))),
+      mkSec('triggers', 'TRIGGERS', s.objs.triggers.filter(tr => match(tr.name)).map(tr => ({ name: tr.name, title: 'Show trigger SQL', meta: tr.table, dot: '#4a3a24', bg: 'transparent', color: '#a8a8b8', onClick: () => toConsole('-- ' + tr.name + ' (not run)\n' + tr.sql + ';', false) }))),
+    ];
+
+    let grid = null, noGridMsg = 'Select a table to browse its rows.', dataMeta = '', canAddRow = false;
+    if (selT && s.tab === 'data' && s.bottomOpen) {
+      const d = this.getData(selT);
+      if (d.msg) noGridMsg = d.msg;
+      else {
+        canAddRow = true;
+        const bcols = d.cols.map(n => d.base.cols.find(c => c.name === n) || null);
+        dataMeta = d.base.name + ' · ' + (d.rows.length < d.count ? 'first ' + d.rows.length + ' of ' : '') + d.count.toLocaleString('en-US') + ' row' + (d.count === 1 ? '' : 's') + (dirty.has(selT.id) ? ' · applied schema' : '') + ' · double-click to edit';
+        if (!d.rows.length) noGridMsg = d.base.name + ' is empty. Add a row, or insert with the SQL console.';
+        else {
+          const ws = widths(d.cols.map((n, i) => n + (bcols[i] ? bcols[i].type : '')), d.rows);
+          const ed = s.edit && s.edit.tid === selT.id ? s.edit : null;
+          const onEditChange = e => this.setState({ edit: { ...this.state.edit, v: e.target.value } });
+          const onEditKey = e => { if (e.key === 'Enter') { e.preventDefault(); this.commitEdit(); } else if (e.key === 'Escape') { e.stopPropagation(); this.setState({ edit: null }); } };
+          const onEditBlur = () => this.commitEdit();
+          grid = {
+            total: 46 + ws.reduce((a, b) => a + b, 0),
+            cols: d.cols.map((n, i) => ({ name: n, type: bcols[i] ? bcols[i].type.toLowerCase() : '', w: ws[i], color: bcols[i] && bcols[i].pk ? '#e8c67c' : bcols[i] && bcols[i].fk ? '#7fd3e0' : '#c8c8d4' })),
+            rows: d.rows.map((r, i) => ({
+              n: i + 1, bg: s.selRow === i ? 'rgba(157,133,255,.12)' : 'transparent', nColor: s.selRow === i ? '#c9bcff' : '#5a5a6a',
+              onSel: () => this.setState(st => ({ selRow: st.selRow === i ? null : i })),
+              cells: r.map((v, k) => {
+                const c = cell(v, bcols[k], ws[k]), editing = !!ed && ed.r === i && ed.k === k;
+                return { ...c, editing, show: !editing, pad: editing ? 3 : 10, editVal: editing ? ed.v : '', onEditChange, onEditKey, onEditBlur,
+                  onEdit: () => { if (v instanceof Uint8Array) { this.toast('BLOB cells are read-only here'); return; } this.setState({ edit: { tid: selT.id, r: i, k, v: v == null ? 'NULL' : String(v) }, selRow: i }); } };
+              }),
+            })),
+          };
+        }
+      }
+    }
+
+    const ddlText = (s.ddlScope === 'table' && selT) ? [ddl(selT, byId), ...selT.indexes.map(ix => idxSql(ix, selT)), ...(selT.triggers || []).map(x => x + ';')].join('\n') : this.schemaText();
+
+    const r = s.sqlRes;
+    let sqlGrid = null;
+    if (r && r.cols) {
+      const ws = widths(r.cols, r.rows);
+      sqlGrid = { total: 40 + ws.reduce((a, b) => a + b, 0), cols: r.cols.map((n, i) => ({ name: n, w: ws[i] })), rows: r.rows.map((row, i) => ({ n: i + 1, cells: row.map((v, k) => cell(v, null, ws[k])) })) };
+    }
+
+    const fkTargets = [];
+    ts.forEach(t => t.cols.forEach(c => { if ((c.pk && t.cols.filter(x => x.pk).length === 1) || c.uq) fkTargets.push({ t: t.id, c: c.id, l: t.name + '.' + c.name }); }));
+    const fkOptionEls = [React.createElement('option', { key: '_', value: '' }, '— none —'), ...fkTargets.map((o, i) => React.createElement('option', { key: o.t + o.c, value: String(i) }, o.l))];
+
+    let ins = {};
+    if (selT) {
+      const tid = selT.id;
+      const chip = (on, c) => ({ bg: on ? c.replace('1)', '.16)') : 'transparent', c: on ? c : '#55556a' });
+      const insCols = selT.cols.map(c => {
+        const pk = chip(c.pk, 'rgba(232,182,76,1)'), nn = chip(c.nn, 'rgba(200,200,212,1)'), uq = chip(c.uq, 'rgba(169,150,255,1)');
+        const hasIdx = selT.indexes.some(ix => ix.cols.length === 1 && ix.cols[0] === c.id), open = s.openCol === c.id;
+        const fi = c.fk ? fkTargets.findIndex(o => o.t === c.fk.t && o.c === c.fk.c) : -1;
+        const typeList = TYPES.includes(c.type) ? TYPES : [c.type, ...TYPES];
+        return {
+          name: c.name, type: c.type, def: c.def || '', fkVal: fi >= 0 ? String(fi) : '', onDelete: c.fk ? c.fk.onDelete : 'NO ACTION', noFK: !c.fk, open,
+          typeOpts: typeList.map(ty => React.createElement('option', { key: ty || '_none', value: ty }, ty || '(none)')),
+          badge: c.pk ? 'PK' : c.fk ? 'FK' : '', badgeColor: c.pk ? '#e8b64c' : '#62c6d6', chev: open ? '▾' : '▸',
+          bg: c.id === s.selCol ? 'rgba(157,133,255,.08)' : 'transparent', border: c.id === s.selCol ? '#2e2a44' : 'transparent',
+          pkBg: pk.bg, pkC: pk.c, nnBg: nn.bg, nnC: nn.c, uqBg: uq.bg, uqC: uq.c,
+          indexLabel: hasIdx ? 'Drop index' : 'Add index',
+          onName: e => this.mutate(list => { list.find(x => x.id === tid).cols.find(x => x.id === c.id).name = san(e.target.value); }, 'cn' + c.id),
+          onFocus: () => this.setState({ selCol: c.id }),
+          onType: e => this.updCol(tid, c.id, { type: e.target.value }),
+          onPK: () => this.updCol(tid, c.id, { pk: !c.pk }), onNN: () => this.updCol(tid, c.id, { nn: !c.nn }), onUQ: () => this.updCol(tid, c.id, { uq: !c.uq }),
+          onToggle: () => this.setState(st => ({ openCol: st.openCol === c.id ? null : c.id, selCol: c.id })),
+          onDef: e => this.updCol(tid, c.id, { def: e.target.value || null }, 'cd' + c.id),
+          onFK: e => { const o = fkTargets[+e.target.value]; this.updCol(tid, c.id, { fk: e.target.value !== '' && o ? { t: o.t, c: o.c, onDelete: c.fk ? c.fk.onDelete : 'NO ACTION' } : null }); },
+          onOD: e => c.fk && this.updCol(tid, c.id, { fk: { ...c.fk, onDelete: e.target.value } }),
+          onIndex: () => this.toggleIndex(tid, c.id), onRemove: () => this.removeColumn(tid, c.id),
+        };
+      });
+      const warnings = [];
+      const badStrict = selT.cols.filter(c => !STRICT_OK.has((c.type || '').toUpperCase())).map(c => c.name);
+      if (selT.strict && badStrict.length) warnings.push('STRICT tables only allow INT, INTEGER, REAL, TEXT, BLOB or ANY. Change ' + badStrict.join(', ') + '.');
+      const anyC = selT.cols.filter(c => c.type === 'ANY').map(c => c.name);
+      if (!selT.strict && anyC.length) warnings.push('ANY only preserves values exactly in STRICT tables (' + anyC.join(', ') + ').');
+      if (selT.withoutRowid && !selT.cols.some(c => c.pk)) warnings.push('WITHOUT ROWID tables need a PRIMARY KEY.');
+      const seen = {}; selT.cols.forEach(c => { if (seen[c.name]) warnings.push('Duplicate column name: ' + c.name); seen[c.name] = 1; });
+      if (ts.some(t => t.id !== selT.id && t.name === selT.name)) warnings.push('Another table is already named ' + selT.name + '.');
+      if (selT.lossy && selT.lossy.length) warnings.push('Not modeled here: ' + selT.lossy.join(', ') + '. A rebuild of this table would drop them.');
+      const relItems = [];
+      selT.cols.forEach(c => { if (c.fk && byId[c.fk.t]) { const tt = byId[c.fk.t], cc = tt.cols.find(x => x.id === c.fk.c); relItems.push({ dir: 'OUT', dirColor: '#62c6d6', label: c.name + ' → ' + tt.name + '.' + (cc ? cc.name : '?'), sub: c.fk.onDelete === 'NO ACTION' ? '' : c.fk.onDelete.toLowerCase(), onClick: () => this.selectTable(tt.id) }); } });
+      ts.forEach(t => t.cols.forEach(c => { if (c.fk && c.fk.t === selT.id && t.id !== selT.id) relItems.push({ dir: 'IN', dirColor: '#a996ff', label: t.name + '.' + c.name, sub: c.fk.onDelete === 'NO ACTION' ? '' : c.fk.onDelete.toLowerCase(), onClick: () => this.selectTable(t.id) }); }));
+      const idxItems = selT.indexes.map(ix => ({ name: ix.name, unique: ix.unique, cols: ix.label || ix.cols.map(id => (selT.cols.find(c => c.id === id) || {}).name).join(', '), onRemove: () => this.mutate(list => { const t = list.find(x => x.id === tid); t.indexes = t.indexes.filter(i => i.id !== ix.id); }) }));
+      const tog = on => ({ border: on ? '#4a3f7a' : '#2a2a34', bg: on ? 'rgba(157,133,255,.14)' : 'transparent', color: on ? '#c9bcff' : '#6e6e7e' });
+      const st = tog(selT.strict), rw = tog(selT.withoutRowid), isNew = !baseIds.has(tid);
+      ins = {
+        selName: selT.name, selDirty: dirty.has(tid) && !isNew, selNew: isNew, selColCount: selT.cols.length,
+        selMeta: (isNew ? 'pending' : selT.count.toLocaleString('en-US') + ' rows') + ' · ' + selT.cols.length + ' columns' + (selT.withoutRowid ? '' : ' · rowid'),
+        onRename: e => this.updTable(tid, { name: san(e.target.value) }, 'tn' + tid),
+        toggleStrict: () => this.updTable(tid, { strict: !selT.strict }), toggleRowid: () => this.updTable(tid, { withoutRowid: !selT.withoutRowid }),
+        strictBorder: st.border, strictBg: st.bg, strictColor: st.color, rowidBorder: rw.border, rowidBg: rw.bg, rowidColor: rw.color,
+        warnings, insCols, relItems, noRels: !relItems.length, idxItems, noIdx: !idxItems.length,
+        addColumn: () => this.addColumn(tid), dropSel: () => this.dropTable(tid),
+      };
+    }
+
+    const n = ops.length, info = s.info;
+    const size = info.size != null ? info.size : 0;
+    const M = (label, hint, fn, dis) => ({ item: true, sep: false, label, hint: hint || '', color: dis ? '#55556a' : '#d8d8e2', onClick: () => { this.setState({ menu: null }); if (!dis) fn(); } });
+    const SEP = { item: false, sep: true };
+    const menuDefs = [
+      ['file', 'File', [M('New database', '', () => this.newDb(), !ready), M('Open…', 'Ctrl+O', () => this.openFile(), !ready), SEP,
+        M('Save', 'Ctrl+S', () => this.save(), !ready), M('Save as…', 'Ctrl+Shift+S', () => this.saveAs(), !ready), SEP,
+        M('Export schema (.sql)', '', () => this.exportSchema()), M('Export migration (.sql)', '', () => this.exportMigration(), !n)]],
+      ['edit', 'Edit', [M('Undo', 'Ctrl+Z', () => this.undo(), !s.history.length), M('Redo', 'Ctrl+Shift+Z', () => this.redo(), !s.future.length), SEP,
+        M('New table', 'T', () => this.addTable()), M('Add column', '', () => selT && this.addColumn(selT.id), !selT), M('Drop table', 'Del', () => selT && this.dropTable(selT.id), !selT)]],
+      ['view', 'View', [M('Fit diagram', 'F', () => this.fit(true)), M('Auto-layout', 'L', () => this.autoLayout()), M('Zoom in', '+', () => this.zoomBy(1.2)), M('Zoom out', '−', () => this.zoomBy(1 / 1.2)), SEP,
+        M('Data', '', () => this.setState({ tab: 'data', bottomOpen: true })), M('DDL', '', () => this.setState({ tab: 'ddl', bottomOpen: true })), M('Changes', '', () => this.setState({ tab: 'changes', bottomOpen: true })), M('SQL console', '', () => this.setState({ tab: 'sql', bottomOpen: true })), M('Toggle bottom panel', 'Ctrl+J', () => this.setState(st => ({ bottomOpen: !st.bottomOpen })))]],
+      ['schema', 'Schema', [M(n ? 'Apply ' + n + ' change' + (n === 1 ? '' : 's') : 'Apply changes', '', () => this.apply(), !n || !ready), M('Discard changes', '', () => this.discard(), !n), M('Copy migration SQL', '', () => this.copy(this.migrationText(), 'Migration copied'), !n), SEP,
+        M('Integrity check', '', () => { this.setState({ sel: null }); this.integrity(); }, !ready), M('VACUUM', '', () => this.vacuum(), !ready), M('foreign_keys ' + (s.fkOn ? 'OFF' : 'ON'), '', () => this.toggleFk(), !ready)]],
+      ['help', 'Help', [M('Keyboard shortcuts', '?', () => this.setState({ showHelp: true }))]],
+    ];
+    const menus = menuDefs.map(([id, label, items]) => ({
+      label, items, open: s.menu === id, bg: s.menu === id ? '#1a1a22' : 'transparent', color: s.menu === id ? '#e7e7ee' : '#8e8e9e',
+      onDown: e => { e.preventDefault(); this.setState(st => ({ menu: st.menu === id ? null : id })); },
+      onEnter: () => { if (this.state.menu && this.state.menu !== id) this.setState({ menu: id }); },
+    }));
+
+    const location = s.engine === 'error' ? 'backend unavailable' : s.dbMeta ? s.dbMeta.dir + ' · ' + s.info.journal : 'no database open';
+    return {
+      ...ins, fkOptionEls, showTypes, canvasRef: this.canvasRef, fileRef: this.fileRef,
+      showMini: s.ch >= 300 && s.cw >= 520, showLegend: s.cw >= 640,
+      windowTitle: (n || s.diskDirty ? '● ' : '') + s.fileName + ' — Tabula',
+      fileName: s.fileName, locationLabel: location, sizeLabel: size ? fmtBytes(size) : '',
+      menus, menuOpen: !!s.menu, closeMenu: () => this.setState({ menu: null }),
+      openFile: () => this.openFile(), save: () => this.save(), diskDirty: s.diskDirty,
+      onFilePicked: e => this.onFilePicked(e),
+      onDragOver: e => { e.preventDefault(); if (!this.state.dragging) this.setState({ dragging: true }); },
+      onDragLeave: e => { if (!e.currentTarget.contains(e.relatedTarget)) this.setState({ dragging: false }); },
+      onDrop: e => this.onDrop(e), dragging: s.dragging,
+      addTable: () => this.addTable(), autoLayout: () => this.autoLayout(), fitView: () => this.fit(true),
+      undo: () => this.undo(), redo: () => this.redo(),
+      undoColor: s.history.length ? '#c8c8d4' : '#44444f', redoColor: s.future.length ? '#c8c8d4' : '#44444f',
+      pendingLabel: n ? n + ' pending change' + (n === 1 ? '' : 's') : 'model in sync', pendingColor: n ? '#e8b64c' : '#6e6e7e',
+      statusPending: n ? n + ' pending' : 'in sync',
+      diskLabel: s.dbMeta ? 'live file' : 'offline', diskColor: s.dbMeta ? '#6fcf97' : '#6e6e7e',
+      discard: () => this.discard(), apply: () => { if (n) this.apply(); else this.setState({ tab: 'changes', bottomOpen: true }); },
+      discardColor: n ? '#c8c8d4' : '#55556a', applyBg: n && ready ? '#9d85ff' : '#1a1a22', applyColor: n && ready ? '#0e0e13' : '#55556a',
+      applyLabel: n ? 'Apply ' + n : 'Apply',
+      search: s.search, onSearch: e => this.setState({ search: e.target.value }), sideSections,
+      canvasDown: e => this.canvasDown(e), stop: e => e.stopPropagation(),
+      gridBg, gridSize: gs + 'px ' + gs + 'px', gridPos: s.pan.x + 'px ' + s.pan.y + 'px', canvasCursor: s.panning ? 'grabbing' : 'default',
+      layerTf: 'translate(' + s.pan.x + 'px, ' + s.pan.y + 'px) scale(' + s.zoom + ')',
+      rels, cards, diagramMeta: ts.length + ' tables · ' + rels.length + ' relations',
+      noTables: ready && !ts.length, emptyTitle: s.fileName + ' has no tables',
+      engineBanner: s.engine === 'loading' ? 'Connecting to Tabula…' : s.engine === 'error' ? s.engineErr : '',
+      engineBannerBg: s.engine === 'error' ? 'rgba(255,107,122,.10)' : '#17171e', engineBannerBorder: s.engine === 'error' ? '#4a2a30' : '#2a2a34', engineBannerColor: s.engine === 'error' ? '#ff9aa4' : '#a0a0b0',
+      engineDot: s.engine === 'ready' ? '#6fcf97' : s.engine === 'error' ? '#ff6b7a' : '#e8b64c',
+      engineLabel: s.engine === 'ready' ? (s.dbMeta ? s.fileName : 'ready') : s.engine === 'error' ? 'backend error' : 'connecting',
+      zoomPct: Math.round(s.zoom * 100) + '%', zoomIn: () => this.zoomBy(1.2), zoomOut: () => this.zoomBy(1 / 1.2),
+      miniItems, miniView,
+      onMini: e => {
+        e.stopPropagation(); const rc = e.currentTarget.getBoundingClientRect(), m = this._mini;
+        const wx = (e.clientX - rc.left - m.mox) / m.ms, wy = (e.clientY - rc.top - m.moy) / m.ms;
+        this.animView(s.zoom, { x: s.cw / 2 - wx * s.zoom, y: s.ch / 2 - wy * s.zoom }, true);
+      },
+      toast: s.toast,
+      tabs: [['data', 'Data'], ['ddl', 'DDL'], ['changes', 'Changes'], ['sql', 'SQL console']].map(([id, label]) => ({
+        label, badge: id === 'changes' && n ? String(n) : '', color: s.tab === id ? '#e7e7ee' : '#8e8e9e', line: s.tab === id ? '#9d85ff' : 'transparent',
+        onClick: () => this.setState({ tab: id, bottomOpen: true }),
+      })),
+      isData: s.tab === 'data', isDDL: s.tab === 'ddl', isChanges: s.tab === 'changes', isSQL: s.tab === 'sql',
+      bottomOpen: s.bottomOpen, bottomChev: s.bottomOpen ? '▾' : '▴', toggleBottom: () => this.setState(st => ({ bottomOpen: !st.bottomOpen })),
+      hasGrid: !!grid, noGrid: !grid, grid: grid || { total: 0, cols: [], rows: [] }, noGridMsg, dataMeta,
+      canAddRow: canAddRow && ready, addRow: () => this.addRow(), canDeleteRow: !!grid && s.selRow != null, deleteRow: () => this.deleteRow(),
+      ddlLines: codeLines(ddlText),
+      ddlTable: () => this.setState({ ddlScope: 'table' }), ddlAll: () => this.setState({ ddlScope: 'all' }),
+      ddlTableBg: s.ddlScope === 'table' ? '#24242d' : 'transparent', ddlTableColor: s.ddlScope === 'table' ? '#e7e7ee' : '#8e8e9e',
+      ddlAllBg: s.ddlScope === 'all' ? '#24242d' : 'transparent', ddlAllColor: s.ddlScope === 'all' ? '#e7e7ee' : '#8e8e9e',
+      copyDDL: () => this.copy(ddlText, 'DDL copied'), copyMigration: () => this.copy(this.migrationText(), 'Migration copied'),
+      hasOps: n > 0, noOps: n === 0, applyError: s.applyError,
+      opItems: ops.map(o => ({ kind: o.kind, color: KC[o.kind], title: o.title, note: o.note || '', lines: codeLines(o.sql), onClick: () => byId[o.tid] && this.selectTable(o.tid) })),
+      sql: s.sql, onSql: e => this.setState({ sql: e.target.value }), runSql: () => this.runSql(),
+      sqlHasRows: !!sqlGrid, sqlHasMsg: !!(r && r.msg), sqlMsg: r && r.msg ? r.msg : '', sqlHasError: !!(r && r.error), sqlIdle: !r, sqlError: r && r.error ? 'Error: ' + r.error : '',
+      sqlGrid: sqlGrid || { total: 0, cols: [], rows: [] }, sqlMeta: sqlGrid ? r.total + ' row' + (r.total === 1 ? '' : 's') + (r.total > r.rows.length ? ' (showing ' + r.rows.length + ')' : '') + ' · ' + r.ms + ' ms' : '',
+      hasSel: !!selT, noSel: !selT,
+      info: { version: info.version || '…', sizeLong: size ? fmtBytes(size) + ' · ' + (info.pageCount || 0).toLocaleString('en-US') + ' pages' : '—', pageSize: info.pageSize, userVersion: info.userVersion ?? 0, encoding: info.encoding || 'UTF-8' },
+      fkLabel: s.fkOn ? 'ON' : 'OFF', fkBorder: s.fkOn ? '#2c4a3a' : '#2a2a34', fkBg: s.fkOn ? 'rgba(111,207,151,.10)' : 'transparent', fkColor: s.fkOn ? '#6fcf97' : '#8e8e9e',
+      toggleFk: () => this.toggleFk(),
+      integrity: () => this.integrity(), vacuum: () => this.vacuum(), integrityMsg: s.integrityMsg, integrityColor: s.integrityOk ? '#6fcf97' : '#ff8a95',
+      showHelp: s.showHelp, closeHelp: () => this.setState({ showHelp: false }),
+      shortcuts: [['Open database', 'Ctrl+O'], ['Save / Save as', 'Ctrl+S / Ctrl+Shift+S'], ['New table', 'T'], ['Drop table or selected row', 'Del'], ['Auto-layout', 'L'], ['Fit diagram', 'F'], ['Zoom', 'Ctrl+scroll · + / −'], ['Pan', 'drag empty space · scroll'], ['Undo / Redo', 'Ctrl+Z / Ctrl+Shift+Z'], ['Run SQL', 'Ctrl+Enter'], ['Toggle bottom panel', 'Ctrl+J'], ['Edit a cell', 'double-click · Enter · Esc']].map(([label, keys]) => ({ label, keys })),
+    };
+  }
+}
+
+function relPath(x1, y1, d1, x2, y2, d2, many, style) {
+  const s1 = x1 + d1 * 16, s2 = x2 + d2 * 16;
+  let m;
+  if (style === 'straight') m = 'L ' + s2 + ' ' + y2;
+  else if (style === 'orthogonal') { const mx = d1 !== d2 ? (s1 + s2) / 2 : d1 > 0 ? Math.max(s1, s2) + 18 : Math.min(s1, s2) - 18; m = 'H ' + mx + ' V ' + y2 + ' H ' + s2; }
+  else { const k = Math.max(50, Math.abs(s2 - s1) * 0.45); m = 'C ' + (s1 + d1 * k) + ' ' + y1 + ' ' + (s2 + d2 * k) + ' ' + y2 + ' ' + s2 + ' ' + y2; }
+  let d = 'M ' + x1 + ' ' + y1 + ' H ' + s1 + ' ' + m + ' H ' + x2;
+  if (many) { const a = x1 + d1 * 11; d += ' M ' + a + ' ' + y1 + ' L ' + x1 + ' ' + (y1 - 5) + ' M ' + a + ' ' + y1 + ' L ' + x1 + ' ' + (y1 + 5); }
+  else d += ' M ' + (x1 + d1 * 7) + ' ' + (y1 - 5) + ' V ' + (y1 + 5);
+  d += ' M ' + (x2 + d2 * 6) + ' ' + (y2 - 5) + ' V ' + (y2 + 5) + ' M ' + (x2 + d2 * 10) + ' ' + (y2 - 5) + ' V ' + (y2 + 5);
+  return d;
+}
+</script>
+</body>
+</html>

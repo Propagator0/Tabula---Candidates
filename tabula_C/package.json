@@ -1,0 +1,12 @@
+{
+  "name": "tabula",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Visual schema editor for SQLite. Bun + bun:sqlite backend, dc/React frontend, fully offline.",
+  "scripts": {
+    "start": "bun server/main.ts --open --idle-exit",
+    "dev": "bun server/main.ts",
+    "demo": "bun scripts/demo.ts demo/tasks.db && bun server/main.ts demo/tasks.db --open --idle-exit",
+    "test": "bun test"
+  }
+}
